@@ -16,7 +16,7 @@ build: main.hex
 $(BUILD_DIR)/%.obj: $(SRC_DIR)/%.c
 	avr-gcc ${CFLAGS} $< -o $@
 clean:
-	rm *.obj *.hex *.o
+	rm $(BUILD_DIR)/*.obj *.hex *.o
 
 .PHONY: flash build clean
 .DEFAULT_GOAL := build
