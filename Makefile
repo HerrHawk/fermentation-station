@@ -1,31 +1,22 @@
 MMCU=atmega328p
-F_CPU=16000000UL
-CFLAGS=-g -Wall -mmcu=${MMCU} -DF_CPU=${F_CPU} -Os -mcall-prologues
+F_CPU=12000000UL
+CFLAGS=-Wall -mmcu=${MMCU} -DF_CPU=${F_CPU} -Os
 
-TARGET = main
-SRC = $(TARGET).c timer.c
-OBJ = $(SRC:%.c=%.o)
-
+SRC_DIR = src
+BUILD_DIR = build
 
 flash: build
-	avrdude -p ${MMCU} -c arduino -P /dev/tty.usbmodem* -vv -U flash:w:$(TARGET).hex
+	avrdude -p ${MMCU} -c usbtiny -vv -U flash:w:main.hex
 
-build: $(TARGET).hex size
+build: main.hex
 
-%.hex: $(TARGET).elf
+%.hex: $(BUILD_DIR)/%.obj
 	avr-objcopy -O ihex $< $@
 
-%.elf: $(OBJ)
-	avr-gcc ${CFLAGS} $^ -o $@
-
-%.o: %.c
-	avr-gcc -c ${CFLAGS} $< -o $@
-
+$(BUILD_DIR)/%.obj: $(SRC_DIR)/%.c
+	avr-gcc ${CFLAGS} $< -o $@
 clean:
 	rm *.obj *.hex *.o
 
-size: $(TARGET).elf
-	avr-size --format=avr --mcu=$(MMCU) $^
-
-.PHONY: flash build clean size
+.PHONY: flash build clean
 .DEFAULT_GOAL := build
