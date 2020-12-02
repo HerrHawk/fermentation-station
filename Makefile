@@ -6,7 +6,7 @@ SRC_DIR = src
 BUILD_DIR = build
 
 flash: build
-	avrdude -p ${MMCU} -c usbtiny -vv -U flash:w:main.hex
+	avrdude -p ${MMCU} -c $(c) -vv -U flash:w:main.hex
 
 build: main.hex
 
