@@ -1,0 +1,10 @@
+# ignore all files from build process
+**/*.hex
+**/*.o
+**/*.obj
+
+# ignore all files within the build directory
+build/*
+
+# ignore all files belonging to IDEs
+.vscode/*
