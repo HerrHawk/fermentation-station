@@ -1,0 +1,9 @@
+﻿---
+BasedOnStyle: Mozilla
+AlwaysBreakAfterDefinitionReturnType: None
+AlwaysBreakAfterReturnType: None
+ColumnLimit: '100'
+Language: Cpp
+UseTab: Never
+
+...
