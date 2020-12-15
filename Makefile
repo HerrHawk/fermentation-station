@@ -6,9 +6,14 @@ TARGET = main
 SRC = src/$(TARGET).c src/logging.c
 OBJ = $(SRC:%.c=%.o)
 
+# use a different port depending on OS
+PORT=/dev/tty.usbmodem*
+ifeq ($(OS), Windows_NT)
+	PORT=COM5
+endif
 
 flash: build
-	avrdude -p ${MMCU} -c arduino -P /dev/tty.usbmodem* -vv -U flash:w:$(TARGET).hex
+	avrdude -p ${MMCU} -c arduino -P $(PORT) -vv -U flash:w:$(TARGET).hex
 
 build: $(TARGET).hex size
 
