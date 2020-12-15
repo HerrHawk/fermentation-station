@@ -3,7 +3,8 @@ F_CPU=12000000UL
 CFLAGS=-g -Wall -mmcu=${MMCU} -DF_CPU=${F_CPU} -Os -mcall-prologues -DDEBUG
 
 TARGET = main
-SRC = src/$(TARGET).c src/logging.c
+SRC = $(wildcard src/*.c) $(wildcard src/controller/*.c) $(wildcard src/drivers/*.c) $(wildcard src/interfaces/*.c)
+
 OBJ = $(SRC:%.c=%.o)
 
 # use a different port depending on OS
