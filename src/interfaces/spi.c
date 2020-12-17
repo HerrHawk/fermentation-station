@@ -3,9 +3,9 @@
 #include "../logging.h"
 #include <avr/io.h>
 
-#define SS PB1   // Slave Select -> in our case always the eInk display
-#define MOSI PB2 // Master Out Slave In -> used to set direction
-#define MISO PB3 // Master In Slave Out -> used to set direction
+#define SS PB2   // Slave Select -> in our case always the eInk display
+#define MOSI PB3 // Master Out Slave In -> used to set direction
+#define MISO PB4 // Master In Slave Out -> used to set direction
 #define SCK PB5  // Shared Clock Signal -> shared because of synchronous communication
 
 /**
