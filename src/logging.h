@@ -29,7 +29,7 @@ const char* const sector_names[];
 #define LOG_DEBUG(sector, message, ...)                                                            \
   sector_logging_enabled[sector]                                                                   \
     ? fprintf(                                                                                     \
-        &uart_output, "%12s [%s:%d] | %s\n", sector_names[sector], __FILE__, __LINE__, message)    \
+        &uart_output, "%12s | %s [%s:%d]\n", sector_names[sector], message, __FILE__, __LINE__)    \
     : 0
 #else
 #define LOG_DEBUG(sector, message)                                                                 \
