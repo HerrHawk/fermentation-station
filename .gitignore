@@ -2,6 +2,7 @@
 **/*.hex
 **/*.o
 **/*.obj
+**/*.elf
 
 # ignore all files within the build directory
 build/*
