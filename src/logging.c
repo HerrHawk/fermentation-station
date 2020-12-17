@@ -1,7 +1,6 @@
-#define F_CPU 12000000UL
-#define __AVR_ATmega328P__
 #define BAUD 9600
 #include "logging.h"
+#include "globals.h"
 #include <avr/io.h>
 #include <stdio.h>
 #include <util/setbaud.h>
