@@ -22,14 +22,14 @@ typedef enum
   SPI,
 } LogSector;
 
-const int const sectorLoggingEnabled[];
-const char* const sectorNames[];
+const int const sector_logging_enabled[];
+const char* const sector_names[];
 
 #ifdef DEBUG
 #define LOG_DEBUG(sector, message, ...)                                                            \
-  sectorLoggingEnabled[sector]                                                                     \
+  sector_logging_enabled[sector]                                                                   \
     ? fprintf(                                                                                     \
-        &uart_output, "%12s [%s:%d] | %s\n", sectorNames[sector], __FILE__, __LINE__, message)     \
+        &uart_output, "%12s [%s:%d] | %s\n", sector_names[sector], __FILE__, __LINE__, message)    \
     : 0
 #else
 #define LOG_DEBUG(sector, message)                                                                 \
