@@ -1,3 +1,4 @@
+#include "globals.h"
 #include "helpers.h"
 #include "logging.h"
 #include <avr/io.h>
@@ -7,6 +8,7 @@ int main(void)
 {
   // run setup functions
   uart_init();
+  spi_init();
 
   while (1) {
     setBit(PORTB, PB5);
