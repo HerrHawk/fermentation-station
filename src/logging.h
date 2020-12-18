@@ -26,11 +26,14 @@ const int const sector_logging_enabled[];
 const char* const sector_names[];
 
 #ifdef DEBUG
-#define LOG_DEBUG(sector, message, ...)                                                            \
-  sector_logging_enabled[sector]                                                                   \
-    ? fprintf(                                                                                     \
-        &uart_output, "%12s | %s [%s:%d]\n", sector_names[sector], message, __FILE__, __LINE__)    \
-    : 0
+#define LOG_DEBUG(sector, ...)                                                                     \
+  do {                                                                                             \
+    if (sector_logging_enabled[sector]) {                                                          \
+      fprintf(&uart_output, "%12s | ", sector_names[sector]);                                      \
+      fprintf(&uart_output, __VA_ARGS__);                                                          \
+      fprintf(&uart_output, " [%s:%d]\n", __FILE__, __LINE__);                                     \
+    }                                                                                              \
+  } while (0)
 #else
 #define LOG_DEBUG(sector, message)                                                                 \
   do {                                                                                             \
