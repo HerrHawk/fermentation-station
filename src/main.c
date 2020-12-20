@@ -1,3 +1,4 @@
+#include "globals.h"
 #include "helpers.h"
 #include "logging.h"
 #include "interfaces/i2c.h"
