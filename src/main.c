@@ -15,6 +15,7 @@ int main(void)
   // run setup functions
   uart_init();
   I2CInit();
+  bme280_init();
 
   while (1) {
     setBit(PORTB, PB5);
@@ -27,7 +28,8 @@ int main(void)
     LOG_DEBUG(DEFAULT, "Main Test Routine");
     _delay_ms(1000);
     LOG_DEBUG(DEFAULT, "Start BME280 Test");
-    bme280_init();
+    int32_t temp =  bme280_read_temp();
+    LOG_DEBUG(DEFAULT, "Temperature: %ld", temp);
     LOG_DEBUG(DEFAULT, "End BME280 Test");
 
     _delay_ms(100);

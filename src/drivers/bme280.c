@@ -4,6 +4,7 @@
 #include "util/delay.h"
 
 trimming_params t_p;
+int32_t t_fine;
 
 void bme280_init()
 {
@@ -141,4 +142,21 @@ void bme280_read_trimming_register()
     t_p.dig_H4 = (bme280_read_byte(BME280_REG_CALIB_H4)<<4)|(bme280_read_byte(BME280_REG_CALIB_H4+1)&0xF);
     t_p.dig_H5 = (bme280_read_byte(BME280_REG_CALIB_H5+1)<<4)|(bme280_read_byte(BME280_REG_CALIB_H5)>>4);
     t_p.dig_H6 = bme280_read_byte(BME280_REG_CALIB_H6);
+}
+
+int32_t bme280_read_temp()
+{
+    int32_t tempraw;
+    tempraw = (int32_t)bme280_read_3bytes(BME280_REG_DATA_TEMP);
+    tempraw >>=4;
+    //compensation formular for temperature. From BME280 datasheet (p.25)
+    int32_t var1,var2, T;
+    
+    var1 = ((((tempraw>>3)-((int32_t)t_p.dig_T1<<1))) * ((int32_t)t_p.dig_T2)) >> 11;
+    var2 = (((((tempraw>>4)-((int32_t)t_p.dig_T1))*((tempraw>>4)-((int32_t)t_p.dig_T1)))>>12) *
+    ((int32_t)t_p.dig_T3)) >> 14;
+
+    t_fine = var1+var2;
+    T = (t_fine*5+128)>>8;
+    return T;
 }
