@@ -30,6 +30,8 @@ int main(void)
     bme280_init();
     LOG_DEBUG(DEFAULT, "End BME280 Test");
 
+    _delay_ms(100);
+
   }
 
   // can never be reached

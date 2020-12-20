@@ -3,6 +3,7 @@
 #include "../logging.h"
 #include "util/delay.h"
 
+trimming_params t_p;
 
 void bme280_init()
 {
@@ -44,7 +45,13 @@ void bme280_init()
 
     I2CStop();
 
-    
+    bme280_read_trimming_register();
+
+    LOG_DEBUG(I2C, "Read trimming: ");
+    LOG_DEBUG(I2C, "%x", t_p.dig_T1);
+    LOG_DEBUG(I2C, "%x", t_p.dig_P1);    
+    LOG_DEBUG(I2C, "%x", t_p.dig_H1);
+    LOG_DEBUG(I2C, "%x", t_p.dig_T2);  
 }
 
 uint8_t bme280_read_byte(uint8_t addr)
@@ -61,7 +68,7 @@ uint8_t bme280_read_byte(uint8_t addr)
     return ret_val;
 }
 
-uint8_t bme280_read_2bytes(uint8_t addr)
+uint16_t bme280_read_2bytes(uint8_t addr)
 {
     uint16_t ret_val;
     
@@ -80,4 +87,58 @@ uint8_t bme280_read_2bytes(uint8_t addr)
     I2CStop();
     
     return ret_val;
+}
+
+uint16_t bme280_read_2bytes_remapped(uint8_t addr)
+{
+    uint16_t ret_val;
+    ret_val = bme280_read_2bytes(addr);
+    return (ret_val << 8) | (ret_val >> 8 );
+}
+
+
+uint32_t bme280_read_3bytes(uint8_t addr)
+{
+    uint32_t ret_val;
+
+    //"aktivate" read-register
+    I2CStartAddress(BME280_ADDRESS<<1);
+    I2CWrite(addr);
+    I2CStop();
+
+    //Start read with address & read flag
+    I2CStartAddress(BME280_ADDRESS<<1|0x01);
+    //Read 1st Byte, send Ack & shift
+    ret_val = I2CReadACK();
+    ret_val <<= 8;
+    ret_val |= I2CReadACK();
+    ret_val <<=8;
+    ret_val |=  I2CReadNoACK();
+    I2CStop();
+
+    return ret_val;
+}
+
+void bme280_read_trimming_register()
+{
+    t_p.dig_T1 = bme280_read_2bytes_remapped(BME280_REG_CALIB_T1);
+    t_p.dig_T2 = (int16_t)bme280_read_2bytes_remapped(BME280_REG_CALIB_T2);  
+    t_p.dig_T3 = (int16_t)bme280_read_2bytes_remapped(BME280_REG_CALIB_T3);
+
+    t_p.dig_P1 = bme280_read_2bytes_remapped(BME280_REG_CALIB_P1);
+    t_p.dig_P2 = (int16_t)bme280_read_2bytes_remapped(BME280_REG_CALIB_P2);
+    t_p.dig_P3 = (int16_t)bme280_read_2bytes_remapped(BME280_REG_CALIB_P3);
+    t_p.dig_P4 = (int16_t)bme280_read_2bytes_remapped(BME280_REG_CALIB_P4);
+    t_p.dig_P5 = (int16_t)bme280_read_2bytes_remapped(BME280_REG_CALIB_P5);
+    t_p.dig_P6 = (int16_t)bme280_read_2bytes_remapped(BME280_REG_CALIB_P6);
+    t_p.dig_P7 = (int16_t)bme280_read_2bytes_remapped(BME280_REG_CALIB_P7);
+    t_p.dig_P8 = (int16_t)bme280_read_2bytes_remapped(BME280_REG_CALIB_P8);
+    t_p.dig_P9 = (int16_t)bme280_read_2bytes_remapped(BME280_REG_CALIB_P9);
+    
+    t_p.dig_H1 = bme280_read_byte(BME280_REG_CALIB_H1);
+    t_p.dig_H2 = (int16_t)bme280_read_2bytes_remapped(BME280_REG_CALIB_H2);
+    t_p.dig_H3 = bme280_read_byte(BME280_REG_CALIB_H3);
+    t_p.dig_H4 = (bme280_read_byte(BME280_REG_CALIB_H4)<<4)|(bme280_read_byte(BME280_REG_CALIB_H4+1)&0xF);
+    t_p.dig_H5 = (bme280_read_byte(BME280_REG_CALIB_H5+1)<<4)|(bme280_read_byte(BME280_REG_CALIB_H5)>>4);
+    t_p.dig_H6 = bme280_read_byte(BME280_REG_CALIB_H6);
 }
