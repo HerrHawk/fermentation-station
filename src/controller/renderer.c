@@ -1,8 +1,12 @@
+<<<<<<< HEAD
 #include "renderer.h"
 #include "../globals.h"
 #include "../interfaces/spi.h"
 #include "../logging.h"
 #include <util/delay.h>
+=======
+#include "interfaces/spi.h"
+>>>>>>> dfba283f232417d3a2bf7c7a610a1d2624684302
 
 // PORTS on the display
 #define RST_PIN PB0
@@ -10,6 +14,7 @@
 #define CS_PIN PB2
 #define BUSY_PIN PD6
 
+<<<<<<< HEAD
 #define BAUD 9600
 
 // define display commands p. 12 - 16
@@ -159,6 +164,11 @@ void display_wipe(void)
 void display_sleep(void) {}
 
 void display_init(lut)
+=======
+unsigned char image[1024];
+
+void init_display()
+>>>>>>> dfba283f232417d3a2bf7c7a610a1d2624684302
 {
   // Set CS, DC and RST Pins to OUTPUT
   PORTB |= _BV(CS_PIN) | _BV(DC_PIN);
@@ -166,6 +176,7 @@ void display_init(lut)
   // Set BUSY Pin to INPUT
   PORTD &= ~_BV(BUSY_PIN);
 
+<<<<<<< HEAD
   // Initialize SPI Connection
   spi_init();
 
@@ -208,10 +219,15 @@ void display_init(lut)
 
   //
   display_set_lookup_table(lut);
+=======
+  // Initialize SPI Connection to spi.c
+  spi_init();
+>>>>>>> dfba283f232417d3a2bf7c7a610a1d2624684302
 }
 
 void render_image(unsigned char image[]) {}
 
+<<<<<<< HEAD
 void clear_display() {}
 
 // required for waveform
@@ -224,3 +240,6 @@ const unsigned char lut_partial_update[] = { 0x10, 0x18, 0x18, 0x08, 0x18, 0x18,
                                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                              0x00, 0x00, 0x00, 0x00, 0x13, 0x14, 0x44, 0x12,
                                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+=======
+void clear_display() {}
+>>>>>>> dfba283f232417d3a2bf7c7a610a1d2624684302
