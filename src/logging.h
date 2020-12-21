@@ -35,7 +35,7 @@ const char* const sector_names[];
     }                                                                                              \
   } while (0)
 #else
-#define LOG_DEBUG(sector, message)                                                                 \
+#define LOG_DEBUG(sector, ...)                                                                     \
   do {                                                                                             \
   } while (0)
 #endif
