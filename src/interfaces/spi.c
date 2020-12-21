@@ -1,3 +1,4 @@
+#include "spi.h"
 #include "../globals.h"
 #include "../helpers.h"
 #include "../logging.h"
@@ -19,8 +20,14 @@ void spi_init()
   // MISO is already set as input
   DDRB |= _BV(SS) | _BV(MOSI) | _BV(SCK);
 
-  // enable SPI | define as main | set to slowest clock rate: F_osc/128
-  SPCR = _BV(SPE) | _BV(MSTR) | _BV(SPR0) | _BV(SPR1);
+  // enable SPI | define as main
+  SPCR |= _BV(SPE) | _BV(MSTR);
+
+  // set clock rate : SPR0:=1 SPR1:=0 --> SPR1hfOSC/16
+  SPCR |= _BV(SPR0);
+
+  // set MSB first
+  SPCR &= ~_BV(DORD);
 
   LOG_DEBUG(SPI, "SPI successfully initialized");
 }
@@ -28,18 +35,21 @@ void spi_init()
 /**
  * Transmit data from main to node.
  *
- * Before using this function, the slave select line (SPI_DDR) needs to be set to low,
- * after transmit back to high.
- *
  * @param datas The data to be transmitted
  */
 void spi_main_transmit(uint8_t data)
 {
+  // Before data can be transmitted, the slave select line (SS) needs to be set to low
+  DDRB &= ~_BV(SS);
+
   // load data to be transmitted into register
   SPDR = data;
 
   // Wait until data has been transmitted
   while (!(SPSR & _BV(SPIF))) {};
+
+  // reset SS after transmit
+  DDRB |= _BV(SS);
 }
 
 /**
