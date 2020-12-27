@@ -1,12 +1,11 @@
-<<<<<<< HEAD
 #include "renderer.h"
 #include "../globals.h"
+#include "../graphics/images.h"
 #include "../interfaces/spi.h"
 #include "../logging.h"
+#include <avr/pgmspace.h>
+#include <stdlib.h>
 #include <util/delay.h>
-=======
-#include "interfaces/spi.h"
->>>>>>> dfba283f232417d3a2bf7c7a610a1d2624684302
 
 // PORTS on the display
 #define RST_PIN PB0
@@ -14,7 +13,6 @@
 #define CS_PIN PB2
 #define BUSY_PIN PD6
 
-<<<<<<< HEAD
 #define BAUD 9600
 
 // define display commands p. 12 - 16
@@ -104,7 +102,16 @@ void display_set_partial_frame_memory(const unsigned char* image_buffer,
                                       int height)
 {}
 
-void display_set_entire_frame_memory(const unsigned char* image_buffer) {}
+void display_set_entire_frame_memory(const unsigned char* image_buffer)
+{
+  LOG_DEBUG(DISPLAY, "WRITE MEMORY");
+  display_set_memory_area(0, 0, DISPLAY_WIDTH - 1, DISPLAY_HEIGHT - 1);
+  display_set_memory_pointer(0, 0);
+  display_send_command(WRITE_RAM);
+  for (int i = 0; i < DISPLAY_WIDTH / 8 * DISPLAY_HEIGHT; i++) {
+    display_send_data(pgm_read_byte(&image_buffer[i]));
+  }
+}
 
 void display_clear_frame_memory(unsigned char color)
 {
@@ -115,7 +122,7 @@ void display_clear_frame_memory(unsigned char color)
   // send command write ram
   display_send_command(WRITE_RAM);
   // send color to display
-  for (int i = 0; i < DISPLAY_WIDTH * DISPLAY_HEIGHT / 8; i++) {
+  for (int i = 0; i < DISPLAY_WIDTH / 8 * DISPLAY_HEIGHT; i++) {
     display_send_data(color);
   }
 }
@@ -123,7 +130,30 @@ void display_clear_frame_memory(unsigned char color)
 void display_render_frame(void)
 {
   display_send_command(DISPLAY_UPDATE_CONTROL_2);
-  display_send_data(0xC4);
+  /*
+  // These are the parameters we encountered
+  0xC4 => 11000100 (waveshare)
+  0xC7 => 11000111 (other)
+  ///
+  0xFF => 11111111
+  0x80 => 10000000
+  0xC0 => 11000000
+  0x0C => 00001100
+  0x08 => 00001000
+  0x04 => 00000100
+  0x03 => 00000011
+  0x01 => 00000001
+
+  7 - enable Clock Signal
+  6 - enable CP (CP = Charge Pump)
+  5 - ??? (likely load temperature)
+  4 - ??? (likely load lut)
+  3 - initial display
+  2 - display pattern
+  1 - disable CP (CP = Charge Pump)
+  0 - disable clock signal
+  */
+  display_send_data(0b11000111);
   display_send_command(MASTER_ACTIVATION);
   display_send_command(TERMINATE_FRAME_READ_WRITE);
   display_wait_until_idle();
@@ -159,6 +189,11 @@ void display_wipe(void)
   display_render_frame();
   display_clear_frame_memory(0xFF);
   display_render_frame();
+  display_set_entire_frame_memory(dickbutt);
+  display_render_frame();
+  display_set_entire_frame_memory(dickbutt);
+  display_render_frame();
+  _delay_ms(3000);
 }
 
 void display_sleep(void) {}
@@ -232,22 +267,3 @@ void display_init()
   //
   display_wipe();
 }
-
-void render_image(unsigned char image[]) {}
-
-<<<<<<< HEAD
-void clear_display() {}
-
-// required for waveform
-const unsigned char lut_full_update[] = { 0x50, 0xAA, 0x55, 0xAA, 0x11, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x1F, 0x00,
-                                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-
-const unsigned char lut_partial_update[] = { 0x10, 0x18, 0x18, 0x08, 0x18, 0x18, 0x08, 0x00,
-                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                             0x00, 0x00, 0x00, 0x00, 0x13, 0x14, 0x44, 0x12,
-                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-=======
-void clear_display() {}
->>>>>>> dfba283f232417d3a2bf7c7a610a1d2624684302
