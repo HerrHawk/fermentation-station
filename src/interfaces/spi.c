@@ -23,10 +23,10 @@ void spi_init()
   // enable SPI | define as main
   SPCR |= _BV(SPE) | _BV(MSTR);
 
-  // set clock rate : SPR0:=1 SPR1:=0 --> SPR1hfOSC/16
+  // set clock rate : SPR0:=1 SPR1:=0 --> fOSC/16 --> 12,000,000/16
   SPCR |= _BV(SPR0);
 
-  // set MSB first
+  // set most significant bit first
   SPCR &= ~_BV(DORD);
 
   LOG_DEBUG(SPI, "SPI successfully initialized");
