@@ -16,7 +16,7 @@
  */
 void spi_init()
 {
-  // set CS, MOSI and SCK as output
+  // set SS, MOSI and SCK as output
   // MISO is already set as input
   DDRB |= _BV(SS) | _BV(MOSI) | _BV(SCK);
 
@@ -40,7 +40,7 @@ void spi_init()
 void spi_main_transmit(uint8_t data)
 {
   // Before data can be transmitted, the slave select line (SS) needs to be set to low
-  DDRB &= ~_BV(SS);
+  PORTB &= ~_BV(SS);
 
   // load data to be transmitted into register
   SPDR = data;
@@ -49,7 +49,7 @@ void spi_main_transmit(uint8_t data)
   while (!(SPSR & _BV(SPIF))) {};
 
   // reset SS after transmit
-  DDRB |= _BV(SS);
+  PORTB |= _BV(SS);
 }
 
 /**

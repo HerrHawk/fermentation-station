@@ -163,20 +163,29 @@ void display_wipe(void)
 
 void display_sleep(void) {}
 
-void display_init(lut)
-=======
-unsigned char image[1024];
+void render_image(unsigned char image[]) {}
 
-void init_display()
->>>>>>> dfba283f232417d3a2bf7c7a610a1d2624684302
+void clear_display() {}
+
+// required for waveform
+const unsigned char lut_full_update[] = { 0x50, 0xAA, 0x55, 0xAA, 0x11, 0x00, 0x00, 0x00,
+                                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                          0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x1F, 0x00,
+                                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+const unsigned char lut_partial_update[] = { 0x10, 0x18, 0x18, 0x08, 0x18, 0x18, 0x08, 0x00,
+                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                             0x00, 0x00, 0x00, 0x00, 0x13, 0x14, 0x44, 0x12,
+                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+void display_init()
 {
   // Set CS, DC and RST Pins to OUTPUT
-  PORTB |= _BV(CS_PIN) | _BV(DC_PIN);
-  PORTD |= _BV(RST_PIN);
+  DDRB |= _BV(CS_PIN) | _BV(DC_PIN);
+  DDRB |= _BV(RST_PIN);
   // Set BUSY Pin to INPUT
-  PORTD &= ~_BV(BUSY_PIN);
+  DDRD &= ~_BV(BUSY_PIN);
 
-<<<<<<< HEAD
   // Initialize SPI Connection
   spi_init();
 
@@ -218,11 +227,10 @@ void init_display()
   display_send_data(0x03);
 
   //
-  display_set_lookup_table(lut);
-=======
-  // Initialize SPI Connection to spi.c
-  spi_init();
->>>>>>> dfba283f232417d3a2bf7c7a610a1d2624684302
+  display_set_lookup_table(lut_full_update);
+
+  //
+  display_wipe();
 }
 
 void render_image(unsigned char image[]) {}
