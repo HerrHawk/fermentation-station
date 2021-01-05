@@ -160,3 +160,24 @@ int32_t bme280_read_temp()
     T = (t_fine*5+128)>>8;
     return T;
 }
+
+uint32_t bme280_read_hum()
+{
+    int32_t humraw = (int32_t)bme280_read_2bytes(BME280_REG_DATA_HUM);
+
+    uint32_t var1;
+
+    var1 = (t_fine- ((int32_t)76800));
+    var1 = (((((humraw<<14)-(((int32_t)t_p.dig_H4)<<20)-(((int32_t)t_p.dig_H5)*
+        var1))+((int32_t)16284))>>15)*(((((((var1*
+        ((int32_t)t_p.dig_H6))>>10)*(((var1*((int32_t)t_p.dig_H3))>>11)+
+        ((int32_t)32768)))>>10)+((int32_t)2097152))*((int32_t)t_p.dig_H2)+
+        8192)>>14));
+    
+    var1 = (var1 - (((((var1>>15)*(var1>>15))>>7)*
+    ((int32_t)t_p.dig_H1))>>4));
+    var1 = (var1 < 0 ? 0 : var1);
+    var1 = (var1 > 419430400? 419430400 : var1);
+
+    return (uint32_t)(var1>>12);
+}

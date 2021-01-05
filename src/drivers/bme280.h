@@ -68,3 +68,5 @@ uint16_t bme280_read_2bytes_remapped(uint8_t addr);
 void bme280_read_trimming_register();
 
 int32_t bme280_read_temp();
+
+uint32_t bme280_read_hum();
