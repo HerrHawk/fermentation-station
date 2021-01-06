@@ -44,7 +44,7 @@ void I2CStartAddress(uint8_t addr)
   //A START condition has been transmitted
     if ((twst!=TW_START) && (twst!=TW_REP_START))
     {
-        LOG_DEBUG(I2C, twst);
+        LOG_DEBUG(I2C,"%x", twst);
         return 1;
     }
 
@@ -56,7 +56,7 @@ void I2CStartAddress(uint8_t addr)
 
     if ((twst != TW_MT_SLA_ACK) && (twst!= TW_MR_SLA_ACK))
     {
-        LOG_DEBUG(I2C, twst);
+        LOG_DEBUG(I2C, "%x",twst);
         return 1;
     }
 
@@ -81,7 +81,7 @@ void I2CWrite(uint8_t u8data)
 
     if(twst != TW_MT_DATA_ACK){
 
-        LOG_DEBUG(I2C, twst);
+        LOG_DEBUG(I2C,"%x", twst);
         return 1;
     } 
 
