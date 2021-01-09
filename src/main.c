@@ -1,10 +1,11 @@
+#include "controller/fermentation.h"
+#include "drivers/bme280.h"
 #include "globals.h"
 #include "helpers.h"
-#include "logging.h"
 #include "interfaces/i2c.h"
+#include "logging.h"
 #include <avr/io.h>
 #include <util/delay.h>
-#include "drivers/bme280.h"
 
 struct state;
 typedef void state_fn(struct state*);
@@ -15,37 +16,139 @@ struct state
   int pass_data;
 };
 
+// int r = rand() % 20;
+
 /*
  * SW States:
  *  - Waiting for user (touch) input
  *  - In Fermentation process (does it make sense to divide this into further states?)
- *  - Error state recoverable -> log and go back into user input
- *  - Error state non recoverable -> for unknown errors (mostly debug purpose)
  */
 
-state_fn wait_for_touch;
-state_fn wait_for_ferm;
+state_fn main_menu;
+state_fn fermentation_process;
 state_fn error;
 state_fn fatalerror;
 
-// This function definition will be replaced by the controller layer functions, e.g.
-// touch_input or sth similar
-void wait_for_touch(struct state* state)
+// The main menu waits for user touch input then starts fermentation with a custom or predefined
+// recipe
+void main_menu(struct state* state)
 {
-  LOG_DEBUG(DEFAULT, "wait for touch input");
+  // Pseudocode that illustrates program behavior
+  // display.render_main_menu()
+  // initializeRecipeCounter = 0
+  // display.renderRecipe()
+  // start main_menu_idle_loop() {
+  //    get_touch_input_update()    // e.g. from register - which button is pressed?
+  //    touch_input_value -> int    // 0b000 = no input, 0b001 = btn1, 0b010 = btn2, 0b100 = btn3
+  //    switch
+  //        case 0b001: (+ btn)
+  //          global_recipe_counter++
+  //          update_display()
+  //        case 0b010: (- btn)
+  //          global_recipe_counter--
+  //          update_display()
+  //        case 0b100: (OK btn)
+  //          switch_to_fermentation_process(selected recipe) --> state change
+  //          //Declare the following state (fermentation_process)
+  //          //return and end the main menu loop -> main method will continue and call the next
+  //          state state->next = fermentation_process; return;
+  //        default (no button press):
+  //          //do nothing, next iteration of loop
+  // }
+
+  LOG_DEBUG(DEFAULT, "wait for user touch input");
   _delay_ms(2000);
   LOG_DEBUG(DEFAULT, "user touch input complete");
-  state->next = wait_for_ferm;
+
+  state->next = fermentation_process;
 }
 
-// This function definition will be replaced by the controller layer functions, e.g.
-// start_fermentation or sth similar
-void wait_for_ferm(struct state* state)
+// The fermentation process regulates temp and hum and also waits for user input to cancel or alter
+// temp or hum
+void fermentation_process(struct state* state)
 {
+  // Pseudocode that illustrates program behavior
+  // display.render_fermentation_view()
+  // display.renderRecipe() // get_global_recipe_counter
+
+  // bool: fermentation_is_started?
+
+  // initialize_temp_ctrl (hystherese from recipe data)
+  // initialize_temp_ctrl (hystherese from recipe data)
+
+  // Change context :
+  // 0: idle
+  // 1: change temperature
+  // 2: change humidity
+  // 3: exit
+
+  // start fermentation_idle_loop() {
+  //    get_touch_input_update()    // e.g. from register - which button is pressed?
+  //    touch_input_value -> int    // 0b000 = no input, 0b001 = btn1, 0b010 = btn2, 0b100 = btn3
+  //    switch
+  //        case 0b001: (+ btn)
+  //          changeContext++
+  //          update_display()
+  //        case 0b010: (- btn)
+  //          changeContext--
+  //          update_display()
+  //        case 0b100: (ok btn)
+  //          switch_to_sub_menu_context --> sub_menu functions
+  //
+  //          if(context = start_fermentation)
+  //            ! (start_fermentation) --> negate bool, pause or continue/start ferm process
+  //
+  //          if(context = exit_button_pressed)
+  //              // Declare the following state (touch_input)
+  //              // STOP fermentation process => heat + nebulizer turned off !!!!!!
+  //              // return and end the fermentation loop -> main method will continue and call the
+  //              next state
+  //
+  //          state state->next = main_menu; return;
+  //        default (no button press):
+  //          if(fermentation_is_started)
+  //            //check_temperature() --> check and update actors if neccessary
+  //            //check_humidity()  --> check and update actors if neccessary
+  // }
+
   LOG_DEBUG(DEFAULT, "begin fermentation");
-  _delay_ms(5000);
+  // _delay_ms(5000);
+
+  while (1) {
+
+    check_temp()
+  }
+
   LOG_DEBUG(DEFAULT, "fermentation complete!");
   state->next = wait_for_touch;
+}
+
+// nested loop method in fermentation_process
+// "invisible nested state"
+void sub_menu_temperature_change()
+{
+  // update_display()
+
+  // for(;;)
+  //    get_user_input()
+  //    switch()
+  //      increment_temp()
+  //      decrement_temp()
+  //      exit_sub_menu() -> return
+}
+
+// nested loop method in fermentation_process
+// "invisible nested state"
+void sub_menu_humidity_change()
+{
+  // update_display()
+
+  // for(;;)
+  //    get_user_input()
+  //    switch()
+  //      increment_hum()
+  //      decrement_hum()
+  //      exit_sub_menu() -> return
 }
 
 // Dummy method for occurring errors
@@ -53,7 +156,6 @@ void error_function()
 {
   LOG_DEBUG(DEFAULT, "error occurred, writing to log");
   _delay_ms(2500);
-  LOG_DEBUG()
 }
 
 int main(void)
@@ -63,29 +165,29 @@ int main(void)
   I2CInit();
   bme280_init();
 
+  const test = struct recipe = { "test", 1337, 42 };
   // Initialize state machine with initial state "wait for touch"
   // (waiting for user input after init)
   struct state state = { wait_for_touch, 0 };
 
   while (1) {
-    //
+
     state.next(&state);
-    setBit(PORTB, PB5);
-    _delay_ms(200);
-    clearBit(PORTB, PB5);
-    _delay_ms(200);
-    toggleBit(PORTB, PB5);
-    _delay_ms(200);
-    toggleBit(PORTB, PB5);
-    LOG_DEBUG(DEFAULT, "Main Test Routine");
-    _delay_ms(1000);
-    LOG_DEBUG(DEFAULT, "Start BME280 Test");
-    int32_t temp =  bme280_read_temp();
-    LOG_DEBUG(DEFAULT, "Temperature: %ld", temp);
-    LOG_DEBUG(DEFAULT, "End BME280 Test");
+    // setBit(PORTB, PB5);
+    // _delay_ms(200);
+    // clearBit(PORTB, PB5);
+    // _delay_ms(200);
+    // toggleBit(PORTB, PB5);
+    // _delay_ms(200);
+    // toggleBit(PORTB, PB5);
+    // LOG_DEBUG(DEFAULT, "Main Test Routine");
+    // _delay_ms(1000);
+    // LOG_DEBUG(DEFAULT, "Start BME280 Test");
+    // int32_t temp = bme280_read_temp();
+    // LOG_DEBUG(DEFAULT, "Temperature: %ld", temp);
+    // LOG_DEBUG(DEFAULT, "End BME280 Test");
 
     _delay_ms(100);
-
   }
 
   // can never be reached
