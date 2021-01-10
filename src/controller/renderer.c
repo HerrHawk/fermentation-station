@@ -40,6 +40,17 @@
 
 unsigned char image[1024];
 
+// required for waveform
+const unsigned char lut_full_update[] = { 0x50, 0xAA, 0x55, 0xAA, 0x11, 0x00, 0x00, 0x00,
+                                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                          0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x1F, 0x00,
+                                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+const unsigned char lut_partial_update[] = { 0x10, 0x18, 0x18, 0x08, 0x18, 0x18, 0x08, 0x00,
+                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                             0x00, 0x00, 0x00, 0x00, 0x13, 0x14, 0x44, 0x12,
+                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
 inline void display_wait_until_idle()
 {
   while (PORTD & _BV(BUSY_PIN)) {
@@ -98,13 +109,50 @@ void display_set_lookup_table(const unsigned char* lut)
 void display_set_partial_frame_memory(const unsigned char* image_buffer,
                                       int x,
                                       int y,
-                                      int width,
-                                      int height)
-{}
+                                      int image_width,
+                                      int image_height)
+{
+  // only continue if action is valid
+  if (image_buffer == NULL || x < 0 || y < 0 || image_width < 1 || image_height < 1) {
+    return;
+  }
+  display_set_lookup_table(lut_partial_update);
+  // x must be the multiple of 8 or the last 3 bits will be ignored
+  x &= 0xF8;
+  image_width &= 0xF8;
+
+  // determine the end index of the image
+  int x_end;
+  int y_end;
+  if (x + image_width >= DISPLAY_WIDTH) {
+    x_end = DISPLAY_WIDTH - 1;
+  } else {
+    x_end = x + image_width - 1;
+  }
+  if (y + image_height >= DISPLAY_HEIGHT) {
+    y_end = DISPLAY_HEIGHT - 1;
+  } else {
+    y_end = y + image_height - 1;
+  }
+
+  // prepare send to display
+  display_set_memory_area(x, y, x_end, y_end);
+  display_set_memory_pointer(x, y);
+  display_send_command(WRITE_RAM);
+
+  // send byte by byte
+  for (int j = 0; j < y_end - y + 1; j++) {
+    for (int i = 0; i < (x_end - x + 1) / 8; i++) {
+      int index = i + j * (image_width / 8);
+      int data = pgm_read_byte(&image_buffer[index]);
+      display_send_data(data);
+    }
+  }
+}
 
 void display_set_entire_frame_memory(const unsigned char* image_buffer)
 {
-  LOG_DEBUG(DISPLAY, "WRITE MEMORY");
+  display_set_lookup_table(lut_full_update);
   display_set_memory_area(0, 0, DISPLAY_WIDTH - 1, DISPLAY_HEIGHT - 1);
   display_set_memory_pointer(0, 0);
   display_send_command(WRITE_RAM);
@@ -193,17 +241,6 @@ void display_sleep(void) {}
 void render_image(unsigned char image[]) {}
 
 void clear_display() {}
-
-// required for waveform
-const unsigned char lut_full_update[] = { 0x50, 0xAA, 0x55, 0xAA, 0x11, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x1F, 0x00,
-                                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-
-const unsigned char lut_partial_update[] = { 0x10, 0x18, 0x18, 0x08, 0x18, 0x18, 0x08, 0x00,
-                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                             0x00, 0x00, 0x00, 0x00, 0x13, 0x14, 0x44, 0x12,
-                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
 void display_init()
 {
