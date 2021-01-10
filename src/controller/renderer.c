@@ -131,19 +131,11 @@ void display_render_frame(void)
 {
   display_send_command(DISPLAY_UPDATE_CONTROL_2);
   /*
-  // These are the parameters we encountered
+  // These are the parameters that work
   0xC4 => 11000100 (waveshare)
-  0xC7 => 11000111 (other)
-  ///
-  0xFF => 11111111
-  0x80 => 10000000
-  0xC0 => 11000000
-  0x0C => 00001100
-  0x08 => 00001000
-  0x04 => 00000100
-  0x03 => 00000011
-  0x01 => 00000001
+  0xC7 => 11000111 (github)
 
+  // Bit Meanings
   7 - enable Clock Signal
   6 - enable CP (CP = Charge Pump)
   5 - ??? (likely load temperature)
@@ -153,7 +145,7 @@ void display_render_frame(void)
   1 - disable CP (CP = Charge Pump)
   0 - disable clock signal
   */
-  display_send_data(0b11000111);
+  display_send_data(0xC4);
   display_send_command(MASTER_ACTIVATION);
   display_send_command(TERMINATE_FRAME_READ_WRITE);
   display_wait_until_idle();
