@@ -1,5 +1,6 @@
 #include "renderer.h"
 #include "../globals.h"
+#include "../graphics/font.h"
 #include "../graphics/images.h"
 #include "../interfaces/spi.h"
 #include "../logging.h"
@@ -221,6 +222,15 @@ void display_set_memory_pointer(int x, int y)
   display_send_data(y & 0xFF);
   display_send_data((y >> 8) & 0xFF);
   display_wait_until_idle();
+}
+
+void font_demo(int first)
+{
+  for (int i = 0x41; i < 0x5A; i++) {
+    display_set_partial_frame_memory(font_8x12[i], 40, 40, 8, 12);
+    display_render_frame();
+    _delay_ms(500);
+  }
 }
 
 void display_wipe(void)
