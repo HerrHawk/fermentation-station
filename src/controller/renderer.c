@@ -179,7 +179,7 @@ void display_set_memory_pointer(int x, int y)
   display_send_data((x >> 3) & 0xFF);
   display_send_command(SET_RAM_Y_ADDRESS_COUNTER);
   display_send_data(y & 0xFF);
-  display_send_data((y >> 3) & 0xFF);
+  display_send_data((y >> 8) & 0xFF);
   display_wait_until_idle();
 }
 
