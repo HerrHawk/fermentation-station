@@ -64,14 +64,14 @@ int main(void)
   I2CInit();
   _delay_ms(100);
   mpr121_init();
-  bme280_init();
+  //bme280_init();
   
 
   // Initialize state machine with initial state "wait for touch"
   // (waiting for user input after init)
   struct state state = { wait_for_touch, 0 };
 
-  // while (1) {
+  while (1) {
   //   //
   //   state.next(&state);
   //   setBit(PORTB, PB5);
@@ -91,12 +91,16 @@ int main(void)
   //   hum/= 1024;
   //   LOG_DEBUG(DEFAULT, "Humidity: %ul", hum);
   //   LOG_DEBUG(DEFAULT, "End BME280 Test");
+  uint8_t rd = mpr121_read_byte(0x00);
+  LOG_DEBUG(DEFAULT, "touch: %x", rd);
 
-  //   LOG_DEBUG(DEFAULT, "touch: %x", mpr121_read_byte(0x00));
+  //rd = mpr121_read_byte(0x1E);
+  //LOG_DEBUG(DEFAULT, "bl: %x", rd);
 
-  //   _delay_ms(100);
 
-  //}
+  _delay_ms(150);
+
+  }
 
   // can never be reached
   return 0;

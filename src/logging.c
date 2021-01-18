@@ -48,5 +48,5 @@ const char* const sector_names[] = {
 
 const int const sector_logging_enabled[] = {
   [DEFAULT] = 1, [TEMPERATURE] = 1, [HUMIDITY] = 1, [DISPLAY] = 1,
-  [CONTROL] = 1, [I2C] = 1,         [SPI] = 1,
+  [CONTROL] = 1, [I2C] = 1, [SPI] = 1, [I2C_DEEP] = 0
 };
