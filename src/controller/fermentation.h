@@ -10,14 +10,14 @@ struct recipe
 {
   char recipe_name[50];
   // in °C (2289 => 22,89°C)
-  uint32_t desired_temp;
+  int32_t desired_temp;
   // integer hystherese
-  uint32_t temp_hyst;
+  int32_t temp_hyst;
   // in %
   uint32_t desired_hum;
   // integer hystherese
   uint32_t hum_hyst;
 };
 
-uint8_t check_hum(struct recipe* recipe);
-uint8_t check_temp(struct recipe* recipe);
+void check_hum(struct recipe* recipe);
+void check_temp(struct recipe* recipe);
