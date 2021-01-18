@@ -8,6 +8,7 @@ int32_t t_fine;
 
 void bme280_init()
 {
+    LOG_DEBUG(I2C, "Info: BME280 start init.");
     //Check if Sensor exists, should return 0x60 (ID of Sensor)
     uint8_t id = bme280_read_byte(BME280_REG_ID);
     if(id != 0x60)

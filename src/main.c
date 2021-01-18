@@ -6,8 +6,13 @@
 #include "logging.h"
 #include <avr/io.h>
 #include <util/delay.h>
+<<<<<<< HEAD
+== == == =
+#include "drivers/bme280.h"
+#include "drivers/mpr121.h"
+>>>>>>> i2c
 
-struct state;
+           struct state;
 typedef void state_fn(struct state*);
 
 struct state
@@ -291,9 +296,12 @@ void error_function()
 int main(void)
 {
   // run setup/initialization functions
+
   uart_init();
   I2CInit();
-  bme280_init();
+  _delay_ms(100);
+  mpr121_init();
+  // bme280_init();
 
   // Initialize state machine with initial state "wait for touch"
   // (waiting for user input after init)
@@ -319,6 +327,14 @@ int main(void)
     LOG_DEBUG(DEFAULT, "End BME280 Test");
 
     _delay_ms(2000);
+
+    uint8_t rd = mpr121_read_byte(0x00);
+    LOG_DEBUG(DEFAULT, "touch: %x", rd);
+
+    // rd = mpr121_read_byte(0x1E);
+    // LOG_DEBUG(DEFAULT, "bl: %x", rd);
+
+    _delay_ms(150);
   }
 
   // can never be reached
