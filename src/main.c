@@ -16,18 +16,79 @@ struct state
   int pass_data;
 };
 
+// TODO: dynamic array?
+struct recipe recipes[3] = {
+  { "Lactobacillales",
+    2500,
+    300,
+    -1,
+    0 }, // Lactofermentierung, 25° (28° optimal), no humidity (-1 means perma off)
+  { "SCOBY",
+    2500,
+    300,
+    -1,
+    0 }, // Symbiotic Culture of Bacteria and Yeast, 25° (28° optimal), no hum (-1)
+  { "Aspergillus Orycae", 3000, 300, 72000, 7000 }, // Koji, 30°, 72% humidity
+  { "combobreaker", 6000, 500, -1, 0 },
+};
+
+uint8_t recipe_counter;
+uint8_t change_context;
+
 // int r = rand() % 20;
 
 /*
  * SW States:
  *  - Waiting for user (touch) input
- *  - In Fermentation process (does it make sense to divide this into further states?)
+ *  - In Fermentation process (waiting for user input to either modify or cancel)
  */
 
 state_fn main_menu;
 state_fn fermentation_process;
 state_fn error;
 state_fn fatalerror;
+
+// TODO: Move to helpers? - what about the recipe and recipecounter globals? Move to globals
+// they will be only used in main loop afaik...
+void set_recipe_counter(uint8_t modifier)
+{
+  recipe_counter = recipe_counter + modifier;
+  uint8_t size = (sizeof(recipes) / sizeof(recipes[0]));
+
+  if (recipe_counter < 0) {
+    // If the recipe counter is at -1 -> set counter to last element in array
+    recipe_counter = size - 1;
+  } else if (recipe_counter == size) {
+    recipe_counter = 0;
+  }
+
+  LOG_DEBUG(DEFAULT, "recipe counter was %d", recipe_counter);
+}
+
+// TODO: Move to helpers? - what about the recipe and recipecounter globals? Move to globals
+// they will be only used in main loop afaik...
+void set_change_context(uint8_t modifier)
+{
+
+  change_context = change_context + modifier;
+
+  // Change context :
+  // 0: idle
+  // 1: change temperature
+  // 2: change humidity
+  // 3: exit
+  change_context = change_context + modifier;
+
+  if (change_context == -1) {
+    change_context = 3;
+  }
+  // TODO: Does idle state (0) get re-selected?
+  else if (change_context == 3) {
+    change_context = 1;
+  }
+
+  LOG_DEBUG(DEFAULT, "change_context was %d", change_context);
+}
 
 // The main menu waits for user touch input then starts fermentation with a custom or predefined
 // recipe
@@ -55,12 +116,42 @@ void main_menu(struct state* state)
   //        default (no button press):
   //          //do nothing, next iteration of loop
   // }
+  // =========================================================================================
 
-  LOG_DEBUG(DEFAULT, "wait for user touch input");
-  _delay_ms(2000);
-  LOG_DEBUG(DEFAULT, "user touch input complete");
+  // TODO
+  // display.render_main_menu()
+  recipe_counter = 0;
+  // display.renderRecipe()
+  for (;;) {
+    LOG_DEBUG(CONTROL, "wait for user touch input");
+    // get_touch_input_update()    // e.g. from register - which button is pressed?
+    // TODO: implement properly once touch is complete
+    uint8_t touch_input = 0b001;
+    // TODO: Remove delay once implementation is complete
+    _delay_ms(2000);
+    LOG_DEBUG(CONTROL, "user touch input complete");
 
-  state->next = fermentation_process;
+    switch (touch_input) {
+      case 0b001: // (+) button pressed
+        set_recipe_counter(1);
+        // display.update()
+        break;
+
+      case 0b010: // (-) button pressed
+        set_recipe_counter(-1);
+        // display.update()
+        break;
+
+      case 0b100:
+        LOG_DEBUG(DEFAULT, "switching state to fermentation");
+        state->next = fermentation_process;
+        return;
+
+      default:
+        // Do nothing, next iteration of loop
+        break;
+    }
+  }
 }
 
 // The fermentation process regulates temp and hum and also waits for user input to cancel or alter
@@ -110,17 +201,56 @@ void fermentation_process(struct state* state)
   //            //check_temperature() --> check and update actors if neccessary
   //            //check_humidity()  --> check and update actors if neccessary
   // }
+  // =========================================================================================
 
-  LOG_DEBUG(DEFAULT, "begin fermentation");
-  // _delay_ms(5000);
+  // TODO
+  // display.render_fermentation_view()
+  // display.renderRecipe(recipe_counter)
 
-  while (1) {
+  bool fermentation_started = false;
 
-    check_temp()
+  // TODO
+  // initialize_temp_ctrl (hystherese from recipe data)
+  // initialize_temp_ctrl (hystherese from recipe data)
+
+  for (;;) {
+    // get_touch_input_update()    // e.g. from register - which button is pressed?
+    uint8_t change_context = 0;
+
+    switch (expression) {
+      case 1:
+        set_change_context(1)
+          // display.update();
+          break;
+      case 2:
+        set_change_context(-1)
+          // display.update();
+          break;
+      case 3: //
+        // TODO: Switch to submenu context
+        // switch_to_submenu_and_return();
+        // display.update();
+
+        // Fermentation start/stop
+        if (!fermentation_started) {
+          fermentation_started = !fermentation_started;
+        }
+
+        state state->next = main_menu;
+        return;
+
+      default:
+        // Check temperature
+
+        // Check humidity
+    }
   }
 
+  LOG_DEBUG(DEFAULT, "begin fermentation");
+  _delay_ms(5000);
+
   LOG_DEBUG(DEFAULT, "fermentation complete!");
-  state->next = wait_for_touch;
+  state->next = main_menu;
 }
 
 // nested loop method in fermentation_process
@@ -165,14 +295,13 @@ int main(void)
   I2CInit();
   bme280_init();
 
-  const test = struct recipe = { "test", 1337, 42 };
   // Initialize state machine with initial state "wait for touch"
   // (waiting for user input after init)
-  struct state state = { wait_for_touch, 0 };
+  struct state state = { main_menu, 0 };
 
   while (1) {
 
-    state.next(&state);
+    // state.next(&state);
     // setBit(PORTB, PB5);
     // _delay_ms(200);
     // clearBit(PORTB, PB5);
@@ -182,12 +311,14 @@ int main(void)
     // toggleBit(PORTB, PB5);
     // LOG_DEBUG(DEFAULT, "Main Test Routine");
     // _delay_ms(1000);
-    // LOG_DEBUG(DEFAULT, "Start BME280 Test");
-    // int32_t temp = bme280_read_temp();
-    // LOG_DEBUG(DEFAULT, "Temperature: %ld", temp);
-    // LOG_DEBUG(DEFAULT, "End BME280 Test");
+    LOG_DEBUG(DEFAULT, "Start BME280 Test");
+    int32_t temp = bme280_read_temp();
+    uint32_t hum = bme280_read_hum();
+    LOG_DEBUG(DEFAULT, "Temperature: %ld", temp);
+    LOG_DEBUG(DEFAULT, "Humidity: %ld", hum);
+    LOG_DEBUG(DEFAULT, "End BME280 Test");
 
-    _delay_ms(100);
+    _delay_ms(2000);
   }
 
   // can never be reached
