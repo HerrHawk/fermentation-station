@@ -6,6 +6,7 @@
 #include <util/delay.h>
 #include "drivers/bme280.h"
 #include "controller/actor.h"
+#include "timer.h"
 
 struct state;
 typedef void state_fn(struct state*);
@@ -57,6 +58,8 @@ int main(void)
   I2CInit();
   bme280_init();
   setup_heating_element();
+  setup_timer_s1();
+  //sei();
   OCR2B = 0x00;
 
 
@@ -65,20 +68,35 @@ int main(void)
   //struct state state = { wait_for_touch, 0 };
 
   int cntr =0;
+  int8_t flip = 1;
+  //deaktivate_heating_pwm();
 
   while (1) {
-    deaktivate_heating_pwm();
-    _delay_ms(1000);
-    aktivate_heating_pwm();
-    //_delay_ms(1000);
-    cntr+=50;
-    if(cntr>255)
+
+    if(s1_triggered)
     {
-      cntr=0;
-    }
-    update_heating_dutycycle(cntr);
-    _delay_ms(1000);
-    
+      //LOG_DEBUG(DEFAULT, "Cool!");
+      if(flip)
+      {
+        LOG_DEBUG(DEFAULT, "On!");
+        aktivate_heating_pwm();
+        cntr+=50;
+        if(cntr>255)
+        {
+          cntr=0;
+        }
+        update_heating_dutycycle(cntr);
+        flip = 0;
+      }
+      else
+      {
+        LOG_DEBUG(DEFAULT, "Off!");
+        deaktivate_heating_pwm();
+        flip = 1;
+      }
+
+      s1_triggered = 0;
+    }     
   }
 
   // can never be reached
