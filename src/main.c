@@ -1,3 +1,6 @@
+#include "controller/fermentation.h"
+#include "drivers/bme280.h"
+#include "drivers/mpr121.h"
 #include "globals.h"
 #include "helpers.h"
 #include "logging.h"
@@ -16,6 +19,26 @@ struct state
   state_fn* next;
   int pass_data;
 };
+
+// TODO: dynamic array?
+struct recipe recipes[] = {
+  { "Lactobacillales",
+    2500,
+    300,
+    -1,
+    0 }, // Lactofermentierung, 25° (28° optimal), no humidity (-1 means perma off)
+  { "SCOBY",
+    2500,
+    300,
+    -1,
+    0 }, // Symbiotic Culture of Bacteria and Yeast, 25° (28° optimal), no hum (-1)
+  { "Aspergillus Orycae", 3000, 300, 72000, 7000 } // Koji, 30°, 72% humidity
+};
+
+uint8_t recipe_counter;
+uint8_t change_context;
+
+// int r = rand() % 20;
 
 /*
  * SW States:
@@ -47,15 +70,18 @@ void wait_for_ferm(struct state* state)
   LOG_DEBUG(DEFAULT, "begin fermentation");
   _delay_ms(5000);
   LOG_DEBUG(DEFAULT, "fermentation complete!");
-  state->next = wait_for_touch;
+  state->next = main_menu;
 }
 
 
 int main(void)
 {
   // run setup/initialization functions
+
   uart_init();
   I2CInit();
+  _delay_ms(100);
+  mpr121_init();
   bme280_init();
   setup_heating_element();
   setup_timer_s1();
