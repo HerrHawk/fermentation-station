@@ -44,3 +44,57 @@ void check_hum(struct recipe* current_recipe)
     LOG_DEBUG(HUMIDITY, "Hum is above hystherese threshold. Turning off humidifier");
   }
 }
+
+// TEST - also for hum?
+// This test assumes the scenario that the temp will be checked every 1s
+// Therefore its assumed that the dervivative ...
+
+// for derivative calc of pid
+int32_t prev_temp = -1;
+int32_t prev_error = -1;
+int32_t prev_time = -1;
+int32_t integral;
+
+int32_t pid_calculate(struct recipe* rec)
+{
+
+  int32_t control_output = 0;
+
+  int32_t current_time = 0;                  // TODO: TIME
+  int32_t desired_temp = rec->desired_temp;  // eq. setpoint
+  int32_t current_temp = bme280_read_temp(); // eq. input
+  int32_t error = desired_temp - current_temp;
+
+  if (prev_temp == -1) {
+    prev_temp = current_temp;
+  }
+
+  if (prev_time == -1) {
+    prev_time = current_time;
+  }
+
+  if (prev_error == -1) {
+    prev_error = error;
+  }
+
+  // int32_t time_change = current_time - prev_time;
+  int32_t time_change = 1; // <- fixed time intervals of 1 second?
+
+  // TODO: Get meaningful values
+  // PID -> GainP + GainI + GainD
+  double kP = 2.0;
+  double kI = 0.0;
+  double kD = 0.0;
+
+  // https://forum.arduino.cc/index.php?topic=430374.0
+  int32_t gainP = kP * error;
+  integral += error * time_change;
+  int32_t gainI = kI * integral;
+  int32_t gainD = kD * ((current_temp - prev_temp) / time_change);
+
+  control_output = gainP + gainI + gainD;
+
+  prev_temp = current_temp;
+  prev_error = error;
+  prev_time = 0; // TODO: TIME
+}
