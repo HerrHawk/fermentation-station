@@ -355,7 +355,7 @@ int main(void)
     // LOG_DEBUG(DEFAULT, "Humidity: %ld", hum);
     // LOG_DEBUG(DEFAULT, "End BME280 Test");
 
-    _delay_ms(2000);
+    // _delay_ms(2000);
 
     // uint8_t rd = mpr121_read_byte(0x00);
     // LOG_DEBUG(DEFAULT, "touch: %x", rd);
@@ -364,7 +364,7 @@ int main(void)
     // rd = mpr121_read_byte(0x1E);
     // LOG_DEBUG(DEFAULT, "bl: %x", rd);
 
-    _delay_ms(150);
+    // _delay_ms(150);
   }
 
   // can never be reached

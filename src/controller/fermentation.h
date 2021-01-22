@@ -21,3 +21,4 @@ struct recipe
 
 void check_hum(struct recipe* recipe);
 void check_temp(struct recipe* recipe);
+int32_t pid_calculate(struct recipe* recipe);
