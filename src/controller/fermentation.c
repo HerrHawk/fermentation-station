@@ -12,11 +12,26 @@ void check_temp(struct recipe* current_recipe)
   int32_t max_temp = current_recipe->desired_temp + current_recipe->temp_hyst;
 
   int32_t current_temp = bme280_read_temp();
-  LOG_DEBUG(TEMPERATURE, "Current Temperature is %d ", current_temp);
+  LOG_DEBUG(TEMPERATURE, "Temp %d ", current_temp);
 
   int32_t control_output = pid_calculate(current_recipe);
-  LOG_DEBUG(DEFAULT, "pid calculated: %d", control_output);
-  LOG_DEBUG(DEFAULT, "==========================");
+  LOG_DEBUG(DEFAULT, "Pid %d", control_output);
+ 
+  //int8_t pwm ;
+
+  //LOG_DEBUG(DEFAULT, "PWM Map: %d", pwm);
+  //LOG_DEBUG(DEFAULT, "==========================");
+
+  if(control_output>255){
+    OCR2B = 0xFF;
+  }else if(control_output<0){
+    OCR2B = 0x00;
+  }
+  else
+  {
+    OCR2B = control_output;
+  }
+  
 
   // if (current_temp <= min_temp) {
   //   // turn on heating system
@@ -86,21 +101,23 @@ int32_t pid_calculate(struct recipe* rec)
 
   // TODO: Get meaningful values
   // PID -> GainP + GainI + GainD
-  double kP = 2.0;
-  double kI = 0.5;
-  double kD = 0.0;
+  double kP = 3;
+  double kI = 0.1;
+  double kD = 1.0;
 
   // https://forum.arduino.cc/index.php?topic=430374.0
   int32_t gainP = kP * error;
-  integral += error * time_change;
+  if(-10<error && error<10){
+      integral += error * time_change;
+  }
   int32_t gainI = kI * integral;
-  // int32_t gainD = kD * ((current_temp - prev_temp) / time_change);
+  int32_t gainD = kD * ((error - prev_error) / time_change);
 
-  LOG_DEBUG(DEFAULT, "gainP %d", gainP);
-  LOG_DEBUG(DEFAULT, "integral %d", integral);
-  LOG_DEBUG(DEFAULT, "gainI %d", gainI);
+  //LOG_DEBUG(DEFAULT, "gainP %ld", gainP);
+  //(DEFAULT, "integral %ld", integral);
+  //(DEFAULT, "gainI %ld", gainI);
 
-  control_output = gainP + gainI; //+ gainD;
+  control_output = gainP + gainI + gainD;
 
   prev_temp = current_temp;
   prev_error = error;

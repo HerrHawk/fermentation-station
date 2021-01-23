@@ -1,5 +1,5 @@
+#pragma once
 #define BME280_ADDRESS (0x76)
-
 #include <avr/io.h>
 
 enum {
