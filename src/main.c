@@ -12,7 +12,7 @@ int main(void)
   display_init();
 
   while (1) {
-    display_wipe();
+    demo();
   }
 
   // can never be reached

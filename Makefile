@@ -3,7 +3,7 @@ F_CPU=12000000UL
 CFLAGS=-g -Wall -mmcu=${MMCU} -DF_CPU=${F_CPU} -Os -mcall-prologues -DDEBUG
 
 TARGET = main
-SRC = $(wildcard src/*.c) $(wildcard src/controller/*.c) $(wildcard src/drivers/*.c) $(wildcard src/interfaces/*.c)
+SRC = $(wildcard src/*.c) $(wildcard src/controller/*.c) $(wildcard src/drivers/*.c) $(wildcard src/interfaces/*.c) $(wildcard src/graphics/*.c) 
 
 OBJ = $(SRC:%.c=%.o)
 
@@ -28,7 +28,7 @@ build: $(TARGET).hex size
 	avr-gcc -c ${CFLAGS} $< -o $@
 
 clean:
-	rm *.elf *.obj *.hex *.o
+	rm **.elf **.obj **.hex **.o
 
 size: $(TARGET).elf
 	avr-size --format=avr --mcu=$(MMCU) $^
