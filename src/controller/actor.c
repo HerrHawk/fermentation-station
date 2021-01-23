@@ -18,7 +18,7 @@ void setup_heating_element()
     //TCCR2A|=1<<COM2B1;
 }
 
-void aktivate_heating_pwm()
+void activate_heating_pwm()
 {
     TCCR2A|=1<<COM2B1;
 }

@@ -8,7 +8,6 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include "drivers/bme280.h"
-#include "controller/actor.h"
 #include "timer.h"
 
 struct state;
@@ -20,26 +19,18 @@ struct state
   int pass_data;
 };
 
-// TODO: dynamic array?
 struct recipe recipes[] = {
   { "Lactobacillales",
     2500,
-    300,
     -1,
     0 }, // Lactofermentierung, 25° (28° optimal), no humidity (-1 means perma off)
   { "SCOBY",
     2500,
-    300,
     -1,
     0 }, // Symbiotic Culture of Bacteria and Yeast, 25° (28° optimal), no hum (-1)
-  { "Aspergillus Orycae", 3000, 300, 72000, 7000 },// Koji, 30°, 72% humidity
-  { "Black Garlic", 6000, 300, 72000, 7000 }
+  { "Aspergillus Orycae", 3000, 72000, 7000 },// Koji, 30°, 72% humidity
+  { "Black Garlic", 6000,  72000, 7000 }
 };
-
-
-
-
-
 
 int main(void)
 {
@@ -62,7 +53,7 @@ int main(void)
 
   int cntr =0;
   int8_t flip = 1;
-  aktivate_heating_pwm();
+  activate_heating_pwm();
 
   while (1) {
 

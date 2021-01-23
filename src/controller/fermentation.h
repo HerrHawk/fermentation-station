@@ -1,3 +1,4 @@
+#pragma once
 #include <stdio.h>
 
 /*
@@ -11,8 +12,6 @@ struct recipe
   char recipe_name[50];
   // in °C (2289 => 22,89°C)
   int32_t desired_temp;
-  // integer hystherese
-  int32_t temp_hyst;
   // in %
   uint32_t desired_hum;
   // integer hystherese
