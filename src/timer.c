@@ -5,8 +5,12 @@
 volatile uint8_t s1_triggered = 0;
 
 void setup_timer_s1()
-{
-    OCR1A = 0x2DC6;
+{   
+    
+    OCR1A = 0x2DC6;  //1 sec
+    //OCR1A = 0x5B8C;  //2 sec
+    //OCR1A = B71B; //4 sec
+
 
     //Mode 4, CTC 
     TCCR1B|=(1<<WGM12);
