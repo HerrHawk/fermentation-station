@@ -1,4 +1,5 @@
 #include "controller/fermentation.h"
+#include "controller/renderer.h"
 #include "drivers/bme280.h"
 #include "drivers/mpr121.h"
 #include "globals.h"
@@ -332,9 +333,12 @@ int main(void)
   mpr121_init();
   bme280_init();
 
+  display_init();
+
   // Initialize state machine with initial state "wait for touch"
   // (waiting for user input after init)
   struct state state = { main_menu, 0 };
+  display_wipe();
 
   while (1) {
 
