@@ -7,7 +7,6 @@
 #include "interfaces/i2c.h"
 #include <avr/io.h>
 #include <util/delay.h>
-#include "drivers/bme280.h"
 #include "timer.h"
 
 struct state;
@@ -43,13 +42,7 @@ int main(void)
   bme280_init();
   setup_heating_element();
   setup_timer_s1();
-  //sei();
   OCR2B = 0x00;
-
-
-  // Initialize state machine with initial state "wait for touch"
-  // (waiting for user input after init)
-  //struct state state = { wait_for_touch, 0 };
 
   int cntr =0;
   int8_t flip = 1;
@@ -65,7 +58,5 @@ int main(void)
       s1_triggered = 0;
     }     
   }
-
-  // can never be reached
   return 0;
 }
