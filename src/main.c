@@ -34,7 +34,6 @@ struct recipe recipes[] = {
 int main(void)
 {
   // run setup/initialization functions
-
   uart_init();
   I2CInit();
   _delay_ms(100);
@@ -42,10 +41,7 @@ int main(void)
   bme280_init();
   setup_heating_element();
   setup_timer_s1();
-  OCR2B = 0x00;
 
-  int cntr =0;
-  int8_t flip = 1;
   activate_heating_pwm();
 
   while (1) {
@@ -53,8 +49,6 @@ int main(void)
     if(s1_triggered)
     {
       check_temp(&recipes[3]);
-
-
       s1_triggered = 0;
     }     
   }
