@@ -369,6 +369,7 @@ int main(void)
     // LOG_DEBUG(DEFAULT, "bl: %x", rd);
 
     // _delay_ms(150);
+    demo();
   }
 
   // can never be reached

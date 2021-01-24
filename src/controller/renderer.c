@@ -1,9 +1,11 @@
 #include "renderer.h"
 #include "../globals.h"
+#include "../graphics/font.h"
 #include "../graphics/images.h"
 #include "../interfaces/spi.h"
 #include "../logging.h"
 #include <avr/pgmspace.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <util/delay.h>
 
@@ -40,6 +42,17 @@
 
 unsigned char image[1024];
 
+// required for waveform
+const unsigned char lut_full_update[] = { 0x50, 0xAA, 0x55, 0xAA, 0x11, 0x00, 0x00, 0x00,
+                                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                          0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x1F, 0x00,
+                                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+const unsigned char lut_partial_update[] = { 0x10, 0x18, 0x18, 0x08, 0x18, 0x18, 0x08, 0x00,
+                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                             0x00, 0x00, 0x00, 0x00, 0x13, 0x14, 0x44, 0x12,
+                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
 inline void display_wait_until_idle()
 {
   while (PORTD & _BV(BUSY_PIN)) {
@@ -60,7 +73,6 @@ void display_send_command(uint8_t command)
   PORTB &= ~_BV(DC_PIN);
 
   // send command
-  LOG_DEBUG(DISPLAY, "send command %x to display", command);
   spi_main_transmit(command);
 }
 
@@ -98,13 +110,63 @@ void display_set_lookup_table(const unsigned char* lut)
 void display_set_partial_frame_memory(const unsigned char* image_buffer,
                                       int x,
                                       int y,
-                                      int width,
-                                      int height)
-{}
+                                      int image_width,
+                                      int image_height,
+                                      int stored_on_flash)
+{
+  // only continue if action is valid
+  if (image_buffer == NULL || x < 0 || y < 0 || image_width < 1 || image_height < 1) {
+    return;
+  }
+  display_set_lookup_table(lut_partial_update);
+  // x must be the multiple of 8 or the last 3 bits will be ignored
+  x &= 0xF8;
+  image_width &= 0xF8;
+
+  // determine the end index of the image
+  int x_end;
+  int y_end;
+  if (x + image_width >= DISPLAY_WIDTH) {
+    x_end = DISPLAY_WIDTH - 1;
+  } else {
+    x_end = x + image_width - 1;
+  }
+  if (y + image_height >= DISPLAY_HEIGHT) {
+    y_end = DISPLAY_HEIGHT - 1;
+  } else {
+    y_end = y + image_height - 1;
+  }
+
+  // prepare send to display
+  display_set_memory_area(x, y, x_end, y_end);
+  display_set_memory_pointer(x, y);
+  display_send_command(WRITE_RAM);
+
+  if (x_end - x < 8) {
+    x_end = x + 8;
+  }
+  if (y_end - y < 8) {
+    y_end = y + 8;
+  }
+
+  // send byte by byte
+  int data;
+  for (int j = 0; j < y_end - y + 1; j++) {
+    for (int i = 0; i < (x_end - x + 1) / 8; i++) {
+      int index = i + j * (image_width / 8);
+      if (stored_on_flash) {
+        data = pgm_read_byte(&image_buffer[index]);
+      } else {
+        data = image_buffer[index];
+      }
+      display_send_data(data);
+    }
+  }
+}
 
 void display_set_entire_frame_memory(const unsigned char* image_buffer)
 {
-  LOG_DEBUG(DISPLAY, "WRITE MEMORY");
+  display_set_lookup_table(lut_full_update);
   display_set_memory_area(0, 0, DISPLAY_WIDTH - 1, DISPLAY_HEIGHT - 1);
   display_set_memory_pointer(0, 0);
   display_send_command(WRITE_RAM);
@@ -115,6 +177,7 @@ void display_set_entire_frame_memory(const unsigned char* image_buffer)
 
 void display_clear_frame_memory(unsigned char color)
 {
+  display_set_lookup_table(lut_full_update);
   // set memory area
   display_set_memory_area(0, 0, DISPLAY_WIDTH - 1, DISPLAY_HEIGHT - 1);
   // set memory pointer
@@ -131,19 +194,11 @@ void display_render_frame(void)
 {
   display_send_command(DISPLAY_UPDATE_CONTROL_2);
   /*
-  // These are the parameters we encountered
+  // These are the parameters that work
   0xC4 => 11000100 (waveshare)
-  0xC7 => 11000111 (other)
-  ///
-  0xFF => 11111111
-  0x80 => 10000000
-  0xC0 => 11000000
-  0x0C => 00001100
-  0x08 => 00001000
-  0x04 => 00000100
-  0x03 => 00000011
-  0x01 => 00000001
+  0xC7 => 11000111 (github)
 
+  // Bit Meanings
   7 - enable Clock Signal
   6 - enable CP (CP = Charge Pump)
   5 - ??? (likely load temperature)
@@ -153,7 +208,7 @@ void display_render_frame(void)
   1 - disable CP (CP = Charge Pump)
   0 - disable clock signal
   */
-  display_send_data(0b11000111);
+  display_send_data(0xC4);
   display_send_command(MASTER_ACTIVATION);
   display_send_command(TERMINATE_FRAME_READ_WRITE);
   display_wait_until_idle();
@@ -161,9 +216,7 @@ void display_render_frame(void)
 
 void display_set_memory_area(int x_start, int y_start, int x_end, int y_end)
 {
-  LOG_DEBUG(DISPLAY, "set display area to x(%d - %d) / y(%d - %d)", x_start, x_end, y_start, y_end);
   display_send_command(SET_RAM_X_ADDRESS_START_END_POSITION);
-  // TODO: multiple of 8??
   display_send_data((x_start >> 3) & 0xFF);
   display_send_data((x_end >> 3) & 0xFF);
   display_send_command(SET_RAM_Y_ADDRESS_START_END_POSITION);
@@ -179,21 +232,84 @@ void display_set_memory_pointer(int x, int y)
   display_send_data((x >> 3) & 0xFF);
   display_send_command(SET_RAM_Y_ADDRESS_COUNTER);
   display_send_data(y & 0xFF);
-  display_send_data((y >> 3) & 0xFF);
+  display_send_data((y >> 8) & 0xFF);
   display_wait_until_idle();
+}
+
+void display_write_text_block(char* string, int x, int y, int inverted)
+{
+
+  // compute required array size
+  int font_height = 16;
+  int font_width = 24;
+  int char_array_size = font_width / 8 * font_height;
+
+  int string_length = strlen(string);
+  int total_height = string_length * font_height;
+  int box_height = total_height > y + DISPLAY_HEIGHT ? DISPLAY_HEIGHT - y : total_height;
+  int box_width = ceil(total_height / box_height) * font_width;
+
+  // allocate text box
+  unsigned char text_box[(box_height / 8) * box_width];
+
+  // write characters to textbox
+  for (int char_index = 0; char_index < string_length; char_index++) {
+    _delay_ms(50);
+    int char_start = (string_length - 1 - char_index) * char_array_size;
+    // LOG_DEBUG(DISPLAY, "Char starts at %d", char_start);
+
+    for (int line_index = char_array_size - 1; line_index >= 0; line_index--) {
+      int index = char_start + line_index;
+      // LOG_DEBUG(DISPLAY, "Write line to %d", index);
+      uint8_t value = pgm_read_byte(&font_16_24[string[char_index]][line_index]);
+      text_box[index] = inverted ? ~value : value;
+    }
+  }
+
+  // send text box to display
+  display_set_partial_frame_memory(&text_box, x, y, box_width, box_height, 0);
+}
+
+void print_text(char* string, int x, int y, int white_on_black)
+{
+  int block_width = strlen(string) * 16;
+  int block_height = strlen(string) * 24;
+  // display_write_text_block(string, DISPLAY_HEIGHT - x + block_width, y, white_on_black);
+  display_write_text_block(string, y, DISPLAY_HEIGHT - x - block_width, white_on_black);
+}
+
+void show_image(const unsigned char* image_buffer, int x, int y, int width, int height)
+{
+  display_set_partial_frame_memory(image_buffer, y, DISPLAY_HEIGHT - x - height, height, width, 1);
+}
+
+void draw_box(const unsigned char* image_buffer, int x, int y, int width, int height, int inverted)
+{
+  // TODO!
 }
 
 void display_wipe(void)
 {
   display_clear_frame_memory(0xFF);
   display_render_frame();
+  _delay_ms(500);
   display_clear_frame_memory(0xFF);
   display_render_frame();
-  display_set_entire_frame_memory(dickbutt);
+  _delay_ms(1000);
+}
+
+void demo(void)
+{
+  display_wipe();
+  print_text("Lacto Ferment", 20, 10, 1);
+  char* temp_string[20];
+  int temperature = 50;
+  sprintf(temp_string, "Temp %dC", temperature);
+  print_text(temp_string, 20, 44, 0);
+  print_text("Hum 50%", 128 + 20 + 20, 44, 0);
+  show_image(doge, 10, 80, 40, 40);
   display_render_frame();
-  display_set_entire_frame_memory(dickbutt);
-  display_render_frame();
-  _delay_ms(3000);
+  _delay_ms(1000);
 }
 
 void display_sleep(void) {}
@@ -201,17 +317,6 @@ void display_sleep(void) {}
 void render_image(unsigned char image[]) {}
 
 void clear_display() {}
-
-// required for waveform
-const unsigned char lut_full_update[] = { 0x50, 0xAA, 0x55, 0xAA, 0x11, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                          0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x1F, 0x00,
-                                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-
-const unsigned char lut_partial_update[] = { 0x10, 0x18, 0x18, 0x08, 0x18, 0x18, 0x08, 0x00,
-                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                             0x00, 0x00, 0x00, 0x00, 0x13, 0x14, 0x44, 0x12,
-                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
 void display_init()
 {
