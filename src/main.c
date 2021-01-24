@@ -1,3 +1,6 @@
+#include "controller/fermentation.h"
+#include "drivers/bme280.h"
+#include "drivers/mpr121.h"
 #include "globals.h"
 #include "helpers.h"
 #include "logging.h"
@@ -5,7 +8,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include "drivers/bme280.h"
-#include "drivers/mpr121.h"
+#include "timer.h"
 
 struct state;
 typedef void state_fn(struct state*);
@@ -16,45 +19,18 @@ struct state
   int pass_data;
 };
 
-/*
- * SW States:
- *  - Waiting for user (touch) input
- *  - In Fermentation process (does it make sense to divide this into further states?)
- *  - Error state recoverable -> log and go back into user input
- *  - Error state non recoverable -> for unknown errors (mostly debug purpose)
- */
-
-state_fn wait_for_touch;
-state_fn wait_for_ferm;
-state_fn error;
-state_fn fatalerror;
-
-// This function definition will be replaced by the controller layer functions, e.g.
-// touch_input or sth similar
-void wait_for_touch(struct state* state)
-{
-  LOG_DEBUG(DEFAULT, "wait for touch input");
-  _delay_ms(2000);
-  LOG_DEBUG(DEFAULT, "user touch input complete");
-  state->next = wait_for_ferm;
-}
-
-// This function definition will be replaced by the controller layer functions, e.g.
-// start_fermentation or sth similar
-void wait_for_ferm(struct state* state)
-{
-  LOG_DEBUG(DEFAULT, "begin fermentation");
-  _delay_ms(5000);
-  LOG_DEBUG(DEFAULT, "fermentation complete!");
-  state->next = wait_for_touch;
-}
-
-// Dummy method for occurring errors
-void error_function()
-{
-  LOG_DEBUG(DEFAULT, "error occurred, writing to log");
-  _delay_ms(2500);
-}
+struct recipe recipes[] = {
+  { "Lactobacillales",
+    2500,
+    -1,
+    0 }, // Lactofermentierung, 25° (28° optimal), no humidity (-1 means perma off)
+  { "SCOBY",
+    2500,
+    -1,
+    0 }, // Symbiotic Culture of Bacteria and Yeast, 25° (28° optimal), no hum (-1)
+  { "Aspergillus Orycae", 3000, 72000, 7000 },// Koji, 30°, 72% humidity
+  { "Black Garlic", 6000,  72000, 7000 }
+};
 
 int main(void)
 {
@@ -63,43 +39,31 @@ int main(void)
   uart_init();
   I2CInit();
   _delay_ms(100);
-  mpr121_init();
-  //bme280_init();
-  
+  //mpr121_init();
+  bme280_init();
+  setup_heating_element();
+  setup_timer_s1();
+  //sei();
+  OCR2B = 0x00;
+
 
   // Initialize state machine with initial state "wait for touch"
   // (waiting for user input after init)
-  struct state state = { wait_for_touch, 0 };
+  //struct state state = { wait_for_touch, 0 };
+
+  int cntr =0;
+  int8_t flip = 1;
+  activate_heating_pwm();
 
   while (1) {
-  //   //
-  //   state.next(&state);
-  //   setBit(PORTB, PB5);
-  //   _delay_ms(200);
-  //   clearBit(PORTB, PB5);
-  //   _delay_ms(200);
-  //   toggleBit(PORTB, PB5);
-  //   _delay_ms(200);
-  //   toggleBit(PORTB, PB5);
-  //   LOG_DEBUG(DEFAULT, "Main Test Routine");
-  //   _delay_ms(1000);
-  //   LOG_DEBUG(DEFAULT, "Start BME280 Test");
-  //   int32_t temp =  bme280_read_temp();
-  //   LOG_DEBUG(DEFAULT, "Temperature: %ld", temp);
-  //   uint32_t hum = bme280_read_hum();
 
-  //   hum/= 1024;
-  //   LOG_DEBUG(DEFAULT, "Humidity: %ul", hum);
-  //   LOG_DEBUG(DEFAULT, "End BME280 Test");
-  uint8_t rd = mpr121_read_byte(0x00);
-  LOG_DEBUG(DEFAULT, "touch: %x", rd);
-
-  //rd = mpr121_read_byte(0x1E);
-  //LOG_DEBUG(DEFAULT, "bl: %x", rd);
+    if(s1_triggered)
+    {
+      check_temp(&recipes[3]);
 
 
-  _delay_ms(150);
-
+      s1_triggered = 0;
+    }     
   }
 
   // can never be reached
