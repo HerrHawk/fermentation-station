@@ -1,7 +1,7 @@
 image: alpine:latest
 
 before_script:
-    - apt-get update && apt-get install -y make && apt-get install -y gcc-avr && apt-get install -y avr-libc
+    - apk update && apk add make gcc-avr avr-libc
 
 build:
   stage: build
