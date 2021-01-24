@@ -8,8 +8,10 @@
 void I2CInit(void);
 void I2CStart(void);
 void I2CStartAddress(uint8_t addr);
+void I2CReStartAddress(uint8_t addr);
 void I2CStop(void);
 void I2CWrite(uint8_t u8data);
+void I2CWriteData(uint8_t addr, uint8_t data);
 uint8_t I2CReadACK(void);
 uint8_t I2CReadNoACK(void);
 uint8_t I2CGetStatus(void);

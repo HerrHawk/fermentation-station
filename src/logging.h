@@ -19,6 +19,7 @@ typedef enum
   DISPLAY,
   CONTROL,
   I2C,
+  I2C_DEEP,
   SPI,
 } LogSector;
 
