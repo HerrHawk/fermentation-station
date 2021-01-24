@@ -1,10 +1,9 @@
-image: alpine:3.12
-
+image: ubuntu
 before_script:
-    - apk add git make avr-libc --no-cache
+    - apt install -y make && apt install -y gcc-avr && apt install -y avr-libc
 
-build:
+build-job:
   stage: build
-  
   script:
     - make build
+
