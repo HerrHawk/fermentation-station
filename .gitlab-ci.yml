@@ -1,6 +1,6 @@
 image: ubuntu
 before_script:
-    - apt install -y make && apt install -y gcc-avr && apt install -y avr-libc
+    - apt update && apt install -y make && apt install -y gcc-avr && apt install -y avr-libc
 
 build-job:
   stage: build
