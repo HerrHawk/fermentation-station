@@ -1,7 +1,7 @@
-image: alpine:latest
+image: alpine:3.12
 
 before_script:
-    - apk update && apk add make gcc-avr avr-libc
+    - apk update && apk add make gcc-avr avr-libc --no-cache
 
 build:
   stage: build
