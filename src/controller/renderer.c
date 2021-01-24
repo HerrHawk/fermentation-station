@@ -298,6 +298,15 @@ void display_wipe(void)
   _delay_ms(1000);
 }
 
+void render_recipe(char* recipe_name, int temperature)
+{
+  display_wipe();
+  print_text(recipe_name, 20, 10, 1);
+  char* temp_string[20];
+  sprintf(temp_string, "Temp %dC", (int)temperature);
+  print_text(temp_string, 20, 44, 0);
+}
+
 void demo(void)
 {
   display_wipe();

@@ -123,7 +123,8 @@ void main_menu(struct state* state)
   // TODO
   // display.render_main_menu()
   recipe_counter = 0;
-  // display.renderRecipe()
+  print_text(recipes[recipe_counter].recipe_name, 20, 10, 1);
+
   for (;;) {
     LOG_DEBUG(CONTROL, "wait for user touch input");
     uint8_t touch_input = mpr121_read_byte(0x00);
@@ -133,12 +134,12 @@ void main_menu(struct state* state)
     switch (touch_input) {
       case 0b001: // (+) button pressed
         set_recipe_counter(1);
-        // display.update()
+        render_recipe(recipes[recipe_counter].recipe_name, recipes[recipe_counter].desired_temp);
         break;
 
       case 0b010: // (-) button pressed
         set_recipe_counter(-1);
-        // display.update()
+        render_recipe(recipes[recipe_counter].recipe_name, recipes[recipe_counter].desired_temp);
         break;
 
       case 0b100: // (ok) button pressed
