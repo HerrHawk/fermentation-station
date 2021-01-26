@@ -94,36 +94,12 @@ void set_change_context(uint8_t modifier)
 // recipe
 void main_menu(struct state* state)
 {
-  // Pseudocode that illustrates program behavior
-  // display.render_main_menu()
-  // initializeRecipeCounter = 0
-  // display.renderRecipe()
-  // start main_menu_idle_loop() {
-  //    get_touch_input_update()    // e.g. from register - which button is pressed?
-  //    touch_input_value -> int    // 0b000 = no input, 0b001 = btn1, 0b010 = btn2, 0b100 = btn3
-  //    switch
-  //        case 0b001: (+ btn)
-  //          global_recipe_counter++
-  //          update_display()
-  //        case 0b010: (- btn)
-  //          global_recipe_counter--
-  //          update_display()
-  //        case 0b100: (OK btn)
-  //          switch_to_fermentation_process(selected recipe) --> state change
-  //          //Declare the following state (fermentation_process)
-  //          //return and end the main menu loop -> main method will continue and call the next
-  //          state state->next = fermentation_process; return;
-  //        default (no button press):
-  //          //do nothing, next iteration of loop
-  // }
-  // =========================================================================================
-
   LOG_DEBUG(CONTROL, "entering main menu");
 
   // TODO
   // display.render_main_menu()
   recipe_counter = 0;
-  print_text(recipes[recipe_counter].recipe_name, 20, 10, 1);
+  render_recipe(recipes[recipe_counter].recipe_name, recipes[recipe_counter].desired_temp);
 
   for (;;) {
     LOG_DEBUG(CONTROL, "wait for user touch input");
@@ -158,50 +134,6 @@ void main_menu(struct state* state)
 // temp or hum
 void fermentation_process(struct state* state)
 {
-  // Pseudocode that illustrates program behavior
-  // display.render_fermentation_view()
-  // display.renderRecipe() // get_global_recipe_counter
-
-  // bool: fermentation_is_started?
-
-  // initialize_temp_ctrl (hystherese from recipe data)
-  // initialize_temp_ctrl (hystherese from recipe data)
-
-  // Change context :
-  // 0: idle
-  // 1: change temperature
-  // 2: change humidity
-  // 3: exit
-
-  // start fermentation_idle_loop() {
-  //    get_touch_input_update()    // e.g. from register - which button is pressed?
-  //    touch_input_value -> int    // 0b000 = no input, 0b001 = btn1, 0b010 = btn2, 0b100 = btn3
-  //    switch
-  //        case 0b001: (+ btn)
-  //          changeContext++
-  //          update_display()
-  //        case 0b010: (- btn)
-  //          changeContext--
-  //          update_display()
-  //        case 0b100: (ok btn)
-  //          switch_to_sub_menu_context --> sub_menu functions
-  //
-  //          if(context = start_fermentation)
-  //            ! (start_fermentation) --> negate bool, pause or continue/start ferm process
-  //
-  //          if(context = exit_button_pressed)
-  //              // Declare the following state (touch_input)
-  //              // STOP fermentation process => heat + nebulizer turned off !!!!!!
-  //              // return and end the fermentation loop -> main method will continue and call the
-  //              next state
-  //
-  //          state state->next = main_menu; return;
-  //        default (no button press):
-  //          if(fermentation_is_started)
-  //            //check_temperature() --> check and update actors if neccessary
-  //            //check_humidity()  --> check and update actors if neccessary
-  // }
-  // =========================================================================================
 
   // TODO
   // display.render_fermentation_view()
@@ -370,7 +302,6 @@ int main(void)
     // LOG_DEBUG(DEFAULT, "bl: %x", rd);
 
     // _delay_ms(150);
-    demo();
   }
 
   // can never be reached

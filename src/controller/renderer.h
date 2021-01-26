@@ -7,6 +7,7 @@ void display_reset();
 extern inline void display_wait_until_idle();
 void display_wipe(void);
 void print_text(char* string, int x, int y, int white_on_black);
+void display_render_frame(void);
 void render_recipe(char* recipe_name, int temperature);
 void show_image(const unsigned char* image_buffer, int x, int y, int width, int height, int invert);
 void draw_box(int color, int x, int y, int width, int height);

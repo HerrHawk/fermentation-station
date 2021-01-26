@@ -309,6 +309,7 @@ void render_recipe(char* recipe_name, int temperature)
   char* temp_string[20];
   sprintf(temp_string, "Temp %dC", (int)temperature);
   print_text(temp_string, 20, 44, 0);
+  display_render_frame();
 }
 
 void demo(void)
