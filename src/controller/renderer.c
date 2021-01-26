@@ -112,7 +112,9 @@ void display_set_partial_frame_memory(const unsigned char* image_buffer,
                                       int y,
                                       int image_width,
                                       int image_height,
-                                      int stored_on_flash)
+                                      int stored_on_flash,
+                                      int overwrite,
+                                      int invert)
 {
   // only continue if action is valid
   if (image_buffer == NULL || x < 0 || y < 0 || image_width < 1 || image_height < 1) {
@@ -156,10 +158,12 @@ void display_set_partial_frame_memory(const unsigned char* image_buffer,
       int index = i + j * (image_width / 8);
       if (stored_on_flash) {
         data = pgm_read_byte(&image_buffer[index]);
+      } else if (overwrite > -1) {
+        data = overwrite;
       } else {
         data = image_buffer[index];
       }
-      display_send_data(data);
+      display_send_data(invert ? ~data : data);
     }
   }
 }
@@ -267,7 +271,7 @@ void display_write_text_block(char* string, int x, int y, int inverted)
   }
 
   // send text box to display
-  display_set_partial_frame_memory(&text_box, x, y, box_width, box_height, 0);
+  display_set_partial_frame_memory(&text_box, x, y, box_width, box_height, 0, -1, 0);
 }
 
 void print_text(char* string, int x, int y, int white_on_black)
@@ -278,14 +282,16 @@ void print_text(char* string, int x, int y, int white_on_black)
   display_write_text_block(string, y, DISPLAY_HEIGHT - x - block_width, white_on_black);
 }
 
-void show_image(const unsigned char* image_buffer, int x, int y, int width, int height)
+void show_image(const unsigned char* image_buffer, int x, int y, int width, int height, int invert)
 {
-  display_set_partial_frame_memory(image_buffer, y, DISPLAY_HEIGHT - x - height, height, width, 1);
+  display_set_partial_frame_memory(
+    image_buffer, y, DISPLAY_HEIGHT - x - width, height, width, 1, -1, invert);
 }
 
-void draw_box(const unsigned char* image_buffer, int x, int y, int width, int height, int inverted)
+void draw_box(int color, int x, int y, int width, int height)
 {
-  // TODO!
+  display_set_partial_frame_memory(
+    font_16_24[0], y, DISPLAY_HEIGHT - x - width, height, width, 0, color, 0);
 }
 
 void display_wipe(void)
@@ -301,15 +307,17 @@ void display_wipe(void)
 void demo(void)
 {
   display_wipe();
+  draw_box(0x00, 0, 0, 296, 40);
   print_text("Lacto Ferment", 20, 10, 1);
   char* temp_string[20];
   int temperature = 50;
   sprintf(temp_string, "Temp %dC", temperature);
   print_text(temp_string, 20, 44, 0);
   print_text("Hum 50%", 128 + 20 + 20, 44, 0);
-  show_image(doge, 10, 80, 40, 40);
+  show_image(doge, 10, 80, 40, 40, 0);
+  show_image(doge, 240, 80, 40, 40, 1);
   display_render_frame();
-  _delay_ms(1000);
+  _delay_ms(10000);
 }
 
 void display_sleep(void) {}
