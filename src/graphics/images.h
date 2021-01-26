@@ -1,7 +1,7 @@
 #pragma once
 #include <avr/pgmspace.h>
 
-const unsigned char smiley[] PROGMEM;
-const unsigned char checkers[] PROGMEM;
-const unsigned char dickbutt[] PROGMEM;
-const unsigned char doge[] PROGMEM;
+extern const unsigned char smiley[] PROGMEM;
+extern const unsigned char checkers[] PROGMEM;
+extern const unsigned char dickbutt[] PROGMEM;
+extern const unsigned char doge[] PROGMEM;
