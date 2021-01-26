@@ -28,10 +28,13 @@ build: $(TARGET).hex size
 	avr-gcc -c ${CFLAGS} $< -o $@
 
 clean:
-	rm **.elf **.obj **.hex **.o
+	rm -f $(TARGET).elf $(OBJ) $(TARGET).hex 
 
 size: $(TARGET).elf
 	avr-size --format=avr --mcu=$(MMCU) $^
+
+size-o:$(OBJ)
+	avr-size --format=berkeley --mcu=$(MMCU) -d $^
 
 .PHONY: flash build clean size
 .DEFAULT_GOAL := build
