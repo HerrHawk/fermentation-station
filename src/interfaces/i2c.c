@@ -44,7 +44,7 @@ void I2CStartAddress(uint8_t addr)
     if ((twst!=TW_START) && (twst!=TW_REP_START))
     {
         LOG_DEBUG(I2C,"Start failed with Code: %x", twst);
-        return 1;
+        return;
     }
 
     TWDR = addr;
@@ -56,10 +56,10 @@ void I2CStartAddress(uint8_t addr)
     if ((twst != TW_MT_SLA_ACK) && (twst!= TW_MR_SLA_ACK))
     {
         LOG_DEBUG(I2C, "%x",twst);
-        return 1;
+        return;
     }
 
-    return 0;
+    return;
 }
 
 void I2CReStartAddress(uint8_t addr)
@@ -77,7 +77,7 @@ void I2CReStartAddress(uint8_t addr)
     if ((twst!=TW_START) && (twst!=TW_REP_START))
     {
         LOG_DEBUG(I2C,"Start failed with Code: %x", twst);
-        return 1;
+        return;
     }
 
     TWDR = addr;
@@ -89,10 +89,10 @@ void I2CReStartAddress(uint8_t addr)
     if ((twst != TW_MT_SLA_ACK) && (twst!= TW_MR_SLA_ACK))
     {
         LOG_DEBUG(I2C, "%x",twst);
-        return 1;
+        return;
     }
 
-    return 0;
+    return;
 }
 
 //Send Stop Condition
@@ -115,10 +115,10 @@ void I2CWrite(uint8_t u8data)
     if(twst != TW_MT_DATA_ACK){
 
         LOG_DEBUG(I2C,"%x", twst);
-        return 1;
+        return;
     } 
 
-    return 0;
+    return;
 }
 
 void I2CWriteData(uint8_t addr, uint8_t data)
