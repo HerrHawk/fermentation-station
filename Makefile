@@ -1,7 +1,6 @@
 MMCU=atmega328p
 F_CPU=12000000UL
-CFLAGS=-g -Wall -mmcu=${MMCU} -DF_CPU=${F_CPU} -Os -mcall-prologues -DDEBUG 
-# -std=c99
+CFLAGS=-g -Wall -mmcu=${MMCU} -DF_CPU=${F_CPU} -Os -mcall-prologues -DDEBUG -std=c99
 
 TARGET = main
 SRC = $(wildcard src/*.c) $(wildcard src/controller/*.c) $(wildcard src/drivers/*.c) $(wildcard src/interfaces/*.c) $(wildcard src/graphics/*.c) 
