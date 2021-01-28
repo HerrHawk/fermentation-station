@@ -18,6 +18,7 @@ void setup_heating_element()
     //TCCR2A|=1<<COM2B1;
 }
 
+
 void activate_heating_pwm()
 {
     TCCR2A|=1<<COM2B1;
@@ -31,4 +32,24 @@ void deaktivate_heating_pwm()
 void update_heating_dutycycle(uint8_t dutycyle)
 {
     OCR2B = dutycyle;
+}
+
+//---------------
+//Humidifier
+//USB Device cant be controlled with PWM. Only On/Off
+//---------------
+
+void setup_humidifier()
+{
+    DDRD |= 1<<PD4;
+}
+
+void activate_humidifier()
+{
+    PORTD |= (1<<PD4);
+}
+
+void deactivate_humidifier()
+{
+    PORTD &= ~(11<<PD4);
 }
