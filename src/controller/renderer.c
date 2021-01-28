@@ -179,7 +179,6 @@ void display_set_entire_frame_memory(const unsigned char* image_buffer)
 
 void display_clear_frame_memory(unsigned char color)
 {
-  display_set_lookup_table(lut_full_update);
   // set memory area
   display_set_memory_area(0, 0, DISPLAY_WIDTH - 1, DISPLAY_HEIGHT - 1);
   // set memory pointer
@@ -294,6 +293,14 @@ void draw_box(int color, int x, int y, int width, int height)
 
 void display_wipe(void)
 {
+  display_set_lookup_table(lut_partial_update);
+  display_clear_frame_memory(0xFF);
+  display_render_frame();
+  _delay_ms(500);
+  display_clear_frame_memory(0xFF);
+  display_render_frame();
+  _delay_ms(1000);
+  display_set_lookup_table(lut_full_update);
   display_clear_frame_memory(0xFF);
   display_render_frame();
   _delay_ms(500);
@@ -302,30 +309,140 @@ void display_wipe(void)
   _delay_ms(1000);
 }
 
-void render_recipe(char* recipe_name, int temperature)
+// helper
+void update_recipe(char* recipe_name, int32_t temperature, uint32_t humidity)
 {
-  display_wipe();
+  draw_box(0x00, 0, 0, 296, 40);
   print_text(recipe_name, 20, 10, 1);
+  draw_box(0xFF, 0, 40, 296, 80);
   char* temp_string[20];
-  sprintf(temp_string, "Temp %dC", (int)temperature);
+  sprintf(temp_string, "Temp %dC", temperature / 100);
   print_text(temp_string, 20, 44, 0);
+  if (humidity != -1) {
+    char* hum_string[20];
+    sprintf(hum_string, "Hum %d%", humidity / 100);
+    print_text(hum_string, 128 + 20 + 20, 44, 0);
+  }
+}
+
+void render_recipe(char* recipe_name, int32_t temperature, uint32_t humidity)
+{
+  update_recipe(recipe_name, temperature, humidity);
+  print_text("OK to configure", 20, 92, 0);
   display_render_frame();
 }
 
-void demo(void)
+void render_recipe_and_submenus(char* recipe_name,
+                                int32_t temperature,
+                                uint32_t humidity,
+                                int8_t ch_ctx,
+                                uint8_t fermentation_started)
 {
-  display_wipe();
+  if (fermentation_started) {
+    update_recipe(recipe_name, temperature, humidity);
+    render_menubuttons(ch_ctx);
+    display_render_frame();
+  } else {
+    render_ferm_start(recipe_name, ch_ctx);
+    display_render_frame();
+  }
+}
+
+void render_ferm_start(char* recipe_name, int8_t change_ctx)
+{
   draw_box(0x00, 0, 0, 296, 40);
-  print_text("Lacto Ferment", 20, 10, 1);
-  char* temp_string[20];
-  int temperature = 50;
-  sprintf(temp_string, "Temp %dC", temperature);
-  print_text(temp_string, 20, 44, 0);
-  print_text("Hum 50%", 128 + 20 + 20, 44, 0);
-  show_image(doge, 10, 80, 40, 40, 0);
-  show_image(doge, 240, 80, 40, 40, 1);
+  print_text(recipe_name, 20, 10, 1);
+  draw_box(0xFF, 0, 40, 296, 120);
+  print_text("OK to start", 20, 44, 0);
+
+  render_menubuttons(change_ctx);
   display_render_frame();
-  _delay_ms(10000);
+}
+
+void render_submenu_temp(char* recipe_name, int32_t temp, int8_t submenu_change_ctx)
+{
+  draw_box(0x00, 0, 0, 296, 40);
+  print_text(recipe_name, 20, 10, 1);
+  draw_box(0xFF, 0, 40, 296, 80);
+  char* temp_string[20];
+  sprintf(temp_string, "Change Temp %dC", temp / 100);
+  print_text(temp_string, 20, 44, 0);
+
+  render_submenu_buttons(submenu_change_ctx);
+  display_render_frame();
+}
+
+void render_submenu_hum(char* recipe_name, uint32_t hum, int8_t submenu_change_ctx)
+{
+  draw_box(0x00, 0, 0, 296, 40);
+  print_text(recipe_name, 20, 10, 1);
+  draw_box(0xFF, 0, 40, 296, 80);
+  char* hum_string[20];
+  sprintf(hum_string, "Change Hum %d", hum / 100);
+  print_text(hum_string, 20, 44, 0);
+
+  render_submenu_buttons(submenu_change_ctx);
+  display_render_frame();
+}
+
+void render_submenu_buttons(int8_t submenu_change_ctx)
+{
+  // TODO: Images!
+  switch (submenu_change_ctx) {
+    case 0:
+      print_text("+", 20, 100, 1);
+      print_text("-", 70, 100, 0);
+      print_text("Save", 120, 100, 0);
+      break;
+    case 1:
+      print_text("+", 20, 100, 0);
+      print_text("-", 70, 100, 1);
+      print_text("Save", 120, 100, 0);
+      break;
+    case 2:
+      print_text("+", 20, 100, 0);
+      print_text("-", 70, 100, 0);
+      print_text("Save", 120, 100, 1);
+      break;
+    default:
+      break;
+  }
+  display_render_frame();
+}
+
+// TODO: Code this in a more clever way once images are ready
+void render_menubuttons(int8_t change_ctx)
+{
+  // TODO: Images!
+  switch (change_ctx) {
+    case 0:
+      print_text("O", 20, 100, 1);
+      print_text("T", 70, 100, 0);
+      print_text("H", 120, 100, 0);
+      print_text("E", 170, 100, 0);
+      break;
+    case 1:
+      print_text("O", 20, 100, 0);
+      print_text("T", 70, 100, 1);
+      print_text("H", 120, 100, 0);
+      print_text("E", 170, 100, 0);
+      break;
+    case 2:
+      print_text("O", 20, 100, 0);
+      print_text("T", 70, 100, 0);
+      print_text("H", 120, 100, 1);
+      print_text("E", 170, 100, 0);
+      break;
+    case 3:
+      print_text("O", 20, 100, 0);
+      print_text("T", 70, 100, 0);
+      print_text("H", 120, 100, 0);
+      print_text("E", 170, 100, 1);
+      break;
+    default:
+      break;
+  }
+  display_render_frame();
 }
 
 void display_sleep(void) {}

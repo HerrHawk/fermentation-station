@@ -6,7 +6,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
-void check_temp(struct recipe* current_recipe)
+int32_t check_temp(struct recipe* current_recipe)
 {
   int32_t min_temp = current_recipe->desired_temp - current_recipe->temp_hyst;
   int32_t max_temp = current_recipe->desired_temp + current_recipe->temp_hyst;
@@ -18,6 +18,8 @@ void check_temp(struct recipe* current_recipe)
   LOG_DEBUG(DEFAULT, "pid calculated: %d", control_output);
   LOG_DEBUG(DEFAULT, "==========================");
 
+  return current_temp;
+
   // if (current_temp <= min_temp) {
   //   // turn on heating system
   //   LOG_DEBUG(TEMPERATURE, "Temp is below hystherese threshold. Turning on heating system");
@@ -27,7 +29,7 @@ void check_temp(struct recipe* current_recipe)
   // }
 }
 
-void check_hum(struct recipe* current_recipe)
+uint32_t check_hum(struct recipe* current_recipe)
 {
   // Humidity does not affect some recipes ->
   // if the value -1 is set in the recipe humidity can be ignored
@@ -47,6 +49,8 @@ void check_hum(struct recipe* current_recipe)
     // turn off heating system
     LOG_DEBUG(HUMIDITY, "Hum is above hystherese threshold. Turning off humidifier");
   }
+
+  return current_hum;
 }
 
 // TEST - also for hum?
