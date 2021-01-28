@@ -18,7 +18,7 @@ struct pid_data_holder
   uint32_t integral_hum
 } pid_data = { -1, -1, 0, -1, -1, 0 };
 
-void check_temp(struct recipe* current_recipe)
+int32_t check_temp(struct recipe* current_recipe)
 {
   double kP = 3;
   double kI = 0.1;
@@ -37,6 +37,8 @@ void check_temp(struct recipe* current_recipe)
   } else {
     update_heating_dutycycle(control_output);
   }
+
+  return bme280_read_temp();
 }
 
 uint32_t check_hum(struct recipe* current_recipe)
@@ -58,7 +60,7 @@ uint32_t check_hum(struct recipe* current_recipe)
     deactivate_humidifier();
   }
 
-  return current_hum;
+  return bme280_read_hum();
 }
 
 int32_t pid_temp_calculate(int32_t setpoint, double kP, double kI, double kD)

@@ -18,8 +18,8 @@ struct recipe
   uint32_t hum_hyst;
 };
 
-void check_hum(struct recipe* recipe);
-void check_temp(struct recipe* recipe);
+uint32_t check_hum(struct recipe* recipe);
+int32_t check_temp(struct recipe* recipe);
 int32_t pid_temp_calculate(int32_t setpoint, double kP, double kI, double kD);
 int32_t pid_hum_calculate(int32_t setpoint, double kP, double kI, double kD);
 int32_t pid_calculate(struct recipe* recipe);
