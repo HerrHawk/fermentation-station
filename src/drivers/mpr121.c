@@ -3,19 +3,10 @@
 #include "../logging.h"
 #include "util/delay.h"
 
-void write_data(uint8_t addr, uint8_t data)
-{
-   I2CStartAddress(MPR121_ADDRESS<<1);
-   I2CWrite(addr);
-   I2CWrite(data);
-   I2CStop();
-}
-
  void mpr121_init()
  {
     LOG_DEBUG(I2C, "Info: MPR121 start init.");
     _delay_ms(1000);
-    
     
     //Softreset
     I2CStartAddress(MPR121_ADDRESS<<1);
@@ -40,14 +31,7 @@ void write_data(uint8_t addr, uint8_t data)
     I2CStop();
     _delay_ms(20);
 
-   
-
-
    //Recommended Settings
-  
-
-   //I2CStartAddress(MPR121_ADDRESS<<1);
-
    write_data(MPR121_MHDR, 0X01);
    write_data(MPR121_NHDR, 0X01);
    write_data(MPR121_NCLR, 0X00);
@@ -56,52 +40,49 @@ void write_data(uint8_t addr, uint8_t data)
    write_data(MPR121_MHDF,0x01);
    write_data(MPR121_NHDF,0x01);
    write_data(MPR121_NCLF,0xFF);
-   check = mpr121_read_byte(MPR121_NCLF);
    write_data(MPR121_FDLF,0x00);
 
-   //write_data(MPR121_NHDT,0x00);
-   //write_data(MPR121_NCLT,0x00);
-   //write_data(MPR121_FDLT,0x00);
-
-   //write_data(MPR121_REG_DEBOUNCE,0x00);
-
-
-   //write_data(MPR121_REG_CONFIG1,0x10);
+   write_data(MPR121_REG_DEBOUNCE,0x02);
    write_data(MPR121_REG_CONFIG2,0x04);
-   //write_data(MPR121_REG_CONFIG2,0x20);
 
+
+   //set_e_thresholds();
+   //Autoconfig
    //write_data(MPR121_REG_AUTOCONFIG_0,0x0B);
    //write_data(MPR121_REG_USL,200);
    //write_data(MPR121_REG_LSL,130);
-   //write_data(MPR121_REG_TL,180);
-
-   check = mpr121_read_byte(MPR121_REG_CONFIG2);
-   check = mpr121_read_byte(MPR121_REG_CONFIG2);
+  // write_data(MPR121_REG_TL,180);
 
    write_data(MPR121_REG_ECR,0x0C);
+   I2CStop();
 
     
     LOG_DEBUG(I2C, "Info: MPR121 Setup Complete.");
  }
 
+
+void write_data(uint8_t addr, uint8_t data)
+{
+   I2CStartAddress(MPR121_ADDRESS<<1);
+   I2CWrite(addr);
+   I2CWrite(data);
+   I2CStop();
+}
+
  uint8_t mpr121_read_byte(uint8_t addr)
  {
-    uint8_t ret_val;
-    I2CStartAddress(MPR121_ADDRESS<<1);
-    I2CWrite(addr);
-    //I2CStop();
-   
-    I2CReStartAddress(MPR121_ADDRESS<<1|0x01);
-    ret_val = I2CReadACK();
-
-    //LOG_DEBUG(I2C, "Return %x",ret_val);
-    I2CStop();
-
-    return ret_val;
+   uint8_t ret_val;
+   I2CStartAddress(MPR121_ADDRESS<<1);
+   I2CWrite(addr);   
+   I2CReStartAddress(MPR121_ADDRESS<<1|0x01);
+   ret_val = I2CReadACK();
+   I2CStop();
+   return ret_val;
  }
 
  void set_e_thresholds(){
    //I2CStartAddress(MPR121_ADDRESS<<1);
+   I2CStartAddress(MPR121_ADDRESS<<1);
    I2CWriteData(E0TTH,TThre);
    I2CWriteData(E0RTH,RThre);
 
@@ -138,6 +119,6 @@ void write_data(uint8_t addr, uint8_t data)
    I2CWriteData(E11TTH,TThre);
    I2CWriteData(E11RTH,RThre);
 
-   //I2CStop();
+   I2CStop();
     
  }

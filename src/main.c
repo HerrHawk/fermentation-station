@@ -6,6 +6,7 @@
 #include "helpers.h"
 #include "interfaces/i2c.h"
 #include "logging.h"
+#include "timer.h"
 #include <avr/io.h>
 #include <util/delay.h>
 
@@ -22,12 +23,10 @@ struct state
 struct recipe recipes[] = {
   { "Lactobacillales",
     2500,
-    300,
     -1,
     0 }, // Lactofermentierung, 25° (28° optimal), no humidity (-1 means perma off)
   { "SCOBY",
     2500,
-    300,
     -1,
     0 }, // Symbiotic Culture of Bacteria and Yeast, 25° (28° optimal), no hum (-1 means perma off)
   { "Asp. Orycae", 3000, 300, 72000, 7000 } // Koji, 30°, 72% humidity
@@ -450,12 +449,13 @@ void error_function()
 int main(void)
 {
   // run setup/initialization functions
-
   uart_init();
   I2CInit();
   _delay_ms(100);
   mpr121_init();
   bme280_init();
+  setup_heating_element();
+  setup_timer_s1();
 
   display_init();
 
@@ -467,7 +467,5 @@ int main(void)
   while (1) {
     state.next(&state);
   }
-
-  // can never be reached
   return 0;
 }
