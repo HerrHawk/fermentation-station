@@ -7,17 +7,32 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
+struct pid_data_holder
+ {
+    int32_t prev_temp;
+    int32_t prev_temp_error;
+    int32_t integral_temp;
+
+    uint32_t prev_hum;
+    int32_t prev_hum_error;
+    uint32_t integral_hum
+ } pid_data = {-1,-1,0,-1,-1,0};
+
 void check_temp(struct recipe* current_recipe)
 {
+  double kP = 3;
+  double kI = 0.1;
+  double kD = 1.0;
+
   int32_t current_temp = bme280_read_temp();
   LOG_DEBUG(TEMPERATURE, "Temp %d ", current_temp);
 
-  int32_t control_output = pid_calculate(current_recipe);
+  int32_t control_output = pid_temp_calculate(current_recipe->desired_temp, kP, kI, kD);
   LOG_DEBUG(DEFAULT, "Pid %d", control_output);
 
   if(control_output>255){
     update_heating_dutycycle(0xFF);
-  }else if(control_output<0){
+  } else if(control_output<0){
     update_heating_dutycycle(0x00);
   }
   else
@@ -28,68 +43,79 @@ void check_temp(struct recipe* current_recipe)
 
 void check_hum(struct recipe* current_recipe)
 {
+  double kP = 1;
+  double kI = 0.1;
+  double kD = 1.0;
   // Humidity does not affect some recipes ->
   // if the value -1 is set in the recipe humidity can be ignored
   if (current_recipe->desired_hum == -1) {
     return;
   }
-  uint32_t min_hum = current_recipe->desired_hum - current_recipe->hum_hyst;
-  uint32_t max_hum = current_recipe->desired_hum + current_recipe->hum_hyst;
 
-  uint32_t current_hum = bme280_read_hum();
-  LOG_DEBUG(HUMIDITY, "Current Humidity is %u ", current_hum);
+  int32_t control_output = pid_hum_calculate(current_recipe->desired_hum, kP, kI, kD);
 
-  if (current_hum <= min_hum) {
-    // turn on heating system
-    LOG_DEBUG(HUMIDITY, "Hum is below hystherese threshold. Turning on humidifer");
-  } else if (current_hum >= max_hum) {
-    // turn off heating system
-    LOG_DEBUG(HUMIDITY, "Hum is above hystherese threshold. Turning off humidifier");
+  if(control_output>255){
+    activate_humidifier();
+  } 
+  else{
+    deactivate_humidifier();
   }
 }
 
-// TEST - also for hum?
-// This test assumes the scenario that the temp will be checked every 1s
-// Therefore its assumed that the dervivative ...
 
-// for derivative calc of pid
-int32_t prev_temp = -1;
-int32_t prev_error = -1;
-int32_t integral = 0;
-
-int32_t pid_calculate(struct recipe* rec)
+int32_t pid_temp_calculate(int32_t setpoint,double kP,double kI,double kD)
 {
-
-  int32_t control_output = 0;
-                // TODO: TIME
-  int32_t desired_temp = rec->desired_temp;  // eq. setpoint
+  // fixed time interval given by counter
+  int32_t time_change = 1;
   int32_t current_temp = bme280_read_temp(); // eq. input
-  int32_t error = desired_temp - current_temp;
+  int32_t error = setpoint - current_temp;
 
   // "Do once" on initialization 
-  if (prev_temp == -1) {
-    prev_temp = current_temp;
-    prev_error = error;
+  if (pid_data.prev_temp == -1) {
+    pid_data.prev_temp = current_temp;
+    pid_data.prev_temp_error = error;
+  }
+
+  if(-20<error && error<20){
+      pid_data.integral_temp += error * time_change;
+  }
+
+  int32_t gainP = kP * error;
+  int32_t gainI = kI * pid_data.integral_temp;
+  int32_t gainD = kD * ((error - pid_data.prev_temp_error) / time_change);
+
+  pid_data.prev_temp = current_temp;
+  pid_data.prev_temp_error = error;
+
+  return gainP + gainI + gainD;
+}
+
+
+int32_t pid_hum_calculate(int32_t setpoint,double kP,double kI,double kD)
+{
+  int32_t current_hum = bme280_read_hum(); // eq. input
+  int32_t error = setpoint - current_hum;
+
+  // "Do once" on initialization 
+  if (pid_data.prev_hum == -1) {
+    pid_data.prev_hum = current_hum;
+    pid_data.prev_hum_error = error;
   }
 
   // fixed time interval given by counter
   int32_t time_change = 1;
-
-  double kP = 3;
-  double kI = 0.1;
-  double kD = 1.0;
+  
+  //Prevent Integral Wind Up by reducing the controllable range
+  if(-100<error && error<100){
+      pid_data.integral_hum += error * time_change;
+  }
 
   int32_t gainP = kP * error;
-  if(-10<error && error<10){
-      integral += error * time_change;
-  }
-  int32_t gainI = kI * integral;
-  int32_t gainD = kD * ((error - prev_error) / time_change);
+  int32_t gainI = kI * pid_data.integral_hum;
+  int32_t gainD = kD * ((error - pid_data.prev_hum_error) / time_change);
 
-  control_output = gainP + gainI + gainD;
+  pid_data.prev_hum = current_hum;
+  pid_data.prev_hum_error = error;
 
-  prev_temp = current_temp;
-  prev_error = error;
-
-  return control_output;
+  return gainP + gainI + gainD;
 }
