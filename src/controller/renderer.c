@@ -343,6 +343,7 @@ void render_recipe_and_submenus(char* recipe_name,
     render_menubuttons(ch_ctx);
     display_render_frame();
   } else {
+    draw_box(0xFF, 0, 40, 296, 80);
     render_ferm_start(recipe_name, ch_ctx);
     display_render_frame();
   }
@@ -352,7 +353,7 @@ void render_ferm_start(char* recipe_name, int8_t change_ctx)
 {
   draw_box(0x00, 0, 0, 296, 40);
   print_text(recipe_name, 20, 10, 1);
-  draw_box(0xFF, 0, 40, 296, 120);
+  draw_box(0xFF, 0, 40, 296, 80);
   print_text("OK to start", 20, 44, 0);
 
   render_menubuttons(change_ctx);
@@ -407,12 +408,13 @@ void render_submenu_buttons(int8_t submenu_change_ctx)
     default:
       break;
   }
-  display_render_frame();
+  // display_render_frame();
 }
 
 // TODO: Code this in a more clever way once images are ready
 void render_menubuttons(int8_t change_ctx)
 {
+  draw_box(0xFF, 0, 80, 296, 120);
   // TODO: Images!
   switch (change_ctx) {
     case 0:
@@ -442,7 +444,6 @@ void render_menubuttons(int8_t change_ctx)
     default:
       break;
   }
-  display_render_frame();
 }
 
 void display_sleep(void) {}

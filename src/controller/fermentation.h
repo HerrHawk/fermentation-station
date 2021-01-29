@@ -1,12 +1,6 @@
 #pragma once
 #include <stdio.h>
 
-/*
- * Hystherese: optimal temp is 60°
- * -> as soon as min hyst : 55° is reached -> begin heating up
- * -> as soon as max hyst : 65° is reached -> begin lowering heat
- */
-
 struct recipe
 {
   char recipe_name[50];

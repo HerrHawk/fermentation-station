@@ -20,17 +20,17 @@ struct state
 };
 
 // Our pre-defined recipes to be selected for a fermentation process
-struct recipe recipes[] = {
-  { "Lactobacillales",
-    2500,
-    -1,
-    0 }, // Lactofermentierung, 25° (28° optimal), no humidity (-1 means perma off)
-  { "SCOBY",
-    2500,
-    -1,
-    0 }, // Symbiotic Culture of Bacteria and Yeast, 25° (28° optimal), no hum (-1 means perma off)
-  { "Asp. Orycae", 3000, 300, 72000, 7000 } // Koji, 30°, 72% humidity
-};
+/*
+// Lactofermentierung, 25° (28° optimal), no humidity (-1 means perma off)
+// Symbiotic Culture of Bacteria and Yeast, 25° (28° optimal), no hum (-1 means perma off)
+// Koji, 30°, 72% humidity
+// TOOD, make me a useful recipe
+*/
+struct recipe recipes[] = { { "Lactobacillales", 2500, -1, 0 },
+                            { "SCOBY", 2500, -1, 0 },
+                            { "Asp. Orycae", 3000, 72000, 7000 },
+                            { "Test1", 4500, -1, 0 },
+                            { "Test2", 5000, 60000, 6000 } };
 
 // Global variable that determines which one of the recipes is currently selected
 int8_t recipe_counter;
@@ -167,8 +167,7 @@ void fermentation_process(struct state* state)
   change_context = 0;
   uint8_t fermentation_started = 0;
 
-  // Has to be called twice to fully overwrite the "alternating memories"
-  render_ferm_start(recipes[recipe_counter].recipe_name, change_context);
+  // Renders the fermentation menu overview
   render_ferm_start(recipes[recipe_counter].recipe_name, change_context);
 
   LOG_DEBUG(
@@ -224,8 +223,6 @@ void fermentation_process(struct state* state)
               fermentation_started = 0;
               change_context = 0;
               // Render the fermentation starting menu and its buttons
-              // (twice to overwrite "alternating memories")
-              render_ferm_start(recipes[recipe_counter].recipe_name, change_context);
               render_ferm_start(recipes[recipe_counter].recipe_name, change_context);
             }
             break;
@@ -276,15 +273,30 @@ void fermentation_process(struct state* state)
         if (fermentation_started) {
           // Check temperature
           int32_t c_temp = check_temp(&recipes[recipe_counter]);
-          // Check humidity
-          uint32_t c_hum = check_hum(&recipes[recipe_counter]);
 
-          // Update the display to show the current temp + hum
-          render_recipe_and_submenus(recipes[recipe_counter].recipe_name,
-                                     c_temp,
-                                     c_hum,
-                                     change_context,
-                                     fermentation_started);
+          // Check humidity only when it is relevant as stated in the corresp. recipe
+          if (recipes[recipe_counter].desired_hum != -1) {
+            // Check humidity
+            uint32_t c_hum = check_hum(&recipes[recipe_counter]);
+            // Update the display to show the current temp + hum
+
+            render_recipe_and_submenus(recipes[recipe_counter].recipe_name,
+                                       c_temp,
+                                       c_hum,
+                                       change_context,
+                                       fermentation_started);
+          }
+          // Humidity is marked as irrelevant in the recipe, only show temp
+          else {
+            render_recipe_and_submenus(recipes[recipe_counter].recipe_name,
+                                       c_temp,
+                                       -1,
+                                       change_context,
+                                       fermentation_started);
+          }
+
+        } else {
+          render_ferm_start(recipes[recipe_counter].recipe_name, change_context);
         }
         break;
     }
