@@ -26,6 +26,8 @@ typedef enum
 const int const sector_logging_enabled[];
 const char* const sector_names[];
 
+#define log(...) fprintf(&uart_output, __VA_ARGS__)
+
 #ifdef DEBUG
 #define LOG_DEBUG(sector, ...)                                                                     \
   do {                                                                                             \

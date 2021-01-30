@@ -148,6 +148,7 @@ void recipe_selection(struct state* state)
 
       case 0b100: // (ok) button pressed
         LOG_DEBUG(DEFAULT, "switching state to fermentation");
+
         // Switch the state machine over to fermentation process
         state->next = fermentation_process;
         return;
@@ -296,6 +297,8 @@ void fermentation_process(struct state* state)
           }
 
         } else {
+          // Giving the display time to render contents
+          _delay_ms(100);
           render_ferm_start(recipes[recipe_counter].recipe_name, change_context);
         }
         break;

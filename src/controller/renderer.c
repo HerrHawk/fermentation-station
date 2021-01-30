@@ -418,28 +418,44 @@ void render_menubuttons(int8_t change_ctx)
   // TODO: Images!
   switch (change_ctx) {
     case 0:
-      print_text("O", 20, 100, 1);
-      print_text("T", 70, 100, 0);
-      print_text("H", 120, 100, 0);
-      print_text("E", 170, 100, 0);
+      show_image(start_icon, 38, 80, 40, 40, 1);
+      show_image(temp_icon, 98, 80, 40, 40, 0);
+      show_image(hum_icon, 158, 80, 40, 40, 0);
+      show_image(back_icon, 218, 80, 40, 40, 0);
+      // print_text("O", 20, 100, 1);
+      // print_text("T", 70, 100, 0);
+      // print_text("H", 120, 100, 0);
+      // print_text("E", 170, 100, 0);
       break;
     case 1:
-      print_text("O", 20, 100, 0);
-      print_text("T", 70, 100, 1);
-      print_text("H", 120, 100, 0);
-      print_text("E", 170, 100, 0);
+      show_image(start_icon, 38, 80, 40, 40, 0);
+      show_image(temp_icon, 98, 80, 40, 40, 1);
+      show_image(hum_icon, 158, 80, 40, 40, 0);
+      show_image(back_icon, 218, 80, 40, 40, 0);
+      // print_text("O", 20, 100, 0);
+      // print_text("T", 70, 100, 1);
+      // print_text("H", 120, 100, 0);
+      // print_text("E", 170, 100, 0);
       break;
     case 2:
-      print_text("O", 20, 100, 0);
-      print_text("T", 70, 100, 0);
-      print_text("H", 120, 100, 1);
-      print_text("E", 170, 100, 0);
+      show_image(start_icon, 38, 80, 40, 40, 0);
+      show_image(temp_icon, 98, 80, 40, 40, 0);
+      show_image(hum_icon, 158, 80, 40, 40, 1);
+      show_image(back_icon, 218, 80, 40, 40, 0);
+      // print_text("O", 20, 100, 0);
+      // print_text("T", 70, 100, 0);
+      // print_text("H", 120, 100, 1);
+      // print_text("E", 170, 100, 0);
       break;
     case 3:
-      print_text("O", 20, 100, 0);
-      print_text("T", 70, 100, 0);
-      print_text("H", 120, 100, 0);
-      print_text("E", 170, 100, 1);
+      show_image(start_icon, 38, 80, 40, 40, 0);
+      show_image(temp_icon, 98, 80, 40, 40, 0);
+      show_image(hum_icon, 158, 80, 40, 40, 0);
+      show_image(back_icon, 218, 80, 40, 40, 1);
+      // print_text("O", 20, 100, 0);
+      // print_text("T", 70, 100, 0);
+      // print_text("H", 120, 100, 0);
+      // print_text("E", 170, 100, 1);
       break;
     default:
       break;
