@@ -293,7 +293,7 @@ void draw_box(int color, int x, int y, int width, int height)
 
 void display_wipe(void)
 {
-  display_set_lookup_table(lut_partial_update);
+  display_set_lookup_table(lut_full_update);
   display_clear_frame_memory(0xFF);
   display_render_frame();
   _delay_ms(500);

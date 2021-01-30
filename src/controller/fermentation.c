@@ -31,10 +31,13 @@ int32_t check_temp(struct recipe* current_recipe)
   LOG_DEBUG(DEFAULT, "Pid %d", control_output);
 
   if (control_output > 255) {
+    activate_heating_pwm();
     update_heating_dutycycle(0xFF);
   } else if (control_output < 0) {
+    deaktivate_heating_pwm();
     update_heating_dutycycle(0x00);
   } else {
+    activate_heating_pwm();
     update_heating_dutycycle(control_output);
   }
 

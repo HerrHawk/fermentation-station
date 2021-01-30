@@ -122,10 +122,10 @@ void recipe_selection(struct state* state)
     // 0b001 : Button 1
     // 0b010 : Button 2
     // 0b100 : Button 3
-    uint8_t touch_input = mpr121_read_byte(0x00);
+    uint8_t touch_input = get_touch();
 
     // TODO: Remove delay once implementation is complete
-    _delay_ms(1000);
+    _delay_ms(10);
 
     switch (touch_input) {
       case 0b001: // (+) button pressed
@@ -178,10 +178,10 @@ void fermentation_process(struct state* state)
     // 0b001 : Button 1
     // 0b010 : Button 2
     // 0b100 : Button 3
-    uint8_t touch_input = mpr121_read_byte(0x00);
+    uint8_t touch_input = get_touch();
 
     // TODO: Delete once implementation is complete
-    _delay_ms(1000);
+    _delay_ms(10);
 
     switch (touch_input) {
       case 0b001: // (+) button
@@ -270,7 +270,7 @@ void fermentation_process(struct state* state)
 
         // If the fermentation process is running, check the temp and hum and let the pid controller
         // control the heating and humidity control process
-        if (fermentation_started) {
+        if (fermentation_started && s1_triggered) {
           // Check temperature
           int32_t c_temp = check_temp(&recipes[recipe_counter]);
 
@@ -319,10 +319,10 @@ void sub_menu_temperature_change()
     // 0b001 : Button 1
     // 0b010 : Button 2
     // 0b100 : Button 3
-    uint8_t touch_input = mpr121_read_byte(0x00);
+    uint8_t touch_input = get_touch();
 
     // TODO: Remove once implementation is complete
-    _delay_ms(1000);
+    _delay_ms(10);
 
     switch (touch_input) {
       case 0b001: // (+) button
@@ -393,10 +393,10 @@ void sub_menu_humidity_change()
     // 0b001 : Button 1
     // 0b010 : Button 2
     // 0b100 : Button 3
-    uint8_t touch_input = mpr121_read_byte(0x00);
+    uint8_t touch_input = get_touch();
 
     // TODO: Remove once implementation is complete
-    _delay_ms(1000);
+    _delay_ms(10);
 
     switch (touch_input) {
       case 0b001: // (+) button
@@ -463,7 +463,7 @@ int main(void)
   // run setup/initialization functions
   uart_init();
   I2CInit();
-  _delay_ms(100);
+  _delay_ms(10);
   mpr121_init();
   bme280_init();
   setup_heating_element();

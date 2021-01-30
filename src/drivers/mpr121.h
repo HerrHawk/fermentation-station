@@ -1,6 +1,6 @@
 #define MPR121_ADDRESS (0x5A)
-#define TThre (0x01)
-#define RThre (0x02)
+#define TThre (0x03)
+#define RThre (0x05)
 
 #include <avr/io.h>
 
@@ -64,4 +64,5 @@ enum{
 void mpr121_init();
 void set_e_thresholds();
 void write_data(uint8_t addr, uint8_t data);
+uint8_t get_touch();
 uint8_t mpr121_read_byte(uint8_t addr);
