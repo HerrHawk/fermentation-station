@@ -171,9 +171,11 @@ void fermentation_process(struct state* state)
   if (!fermentation_started) {
     render_ferm_start(recipes[recipe_counter].recipe_name, change_context);
   }
-  // TODO: bme280_read_temp()
-  int32_t c_temp;
-  uint32_t c_hum;
+  int32_t c_temp = bme280_read_temp();
+  uint32_t c_hum = recipes[recipe_counter].desired_hum != -1 ? bme280_read_hum() : -1;
+  // TOOD: move this out
+  render_recipe_and_submenus(
+    recipes[recipe_counter].recipe_name, c_temp, c_hum, change_context, fermentation_started);
   LOG_DEBUG(
     CONTROL, "starting fermentation process with recipe %s ", recipes[recipe_counter].recipe_name);
 
@@ -250,6 +252,11 @@ void fermentation_process(struct state* state)
           change_context = 0;
           // Render the fermentation starting menu and its buttons
           render_ferm_start(recipes[recipe_counter].recipe_name, change_context);
+          render_recipe_and_submenus(recipes[recipe_counter].recipe_name,
+                                     recipes[recipe_counter].desired_temp,
+                                     recipes[recipe_counter].desired_hum,
+                                     change_context,
+                                     fermentation_started);
         }
         return;
         break;
