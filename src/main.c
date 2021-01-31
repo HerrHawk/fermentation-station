@@ -172,8 +172,8 @@ void fermentation_process(struct state* state)
     render_ferm_start(recipes[recipe_counter].recipe_name, change_context);
   }
   // TODO: bme280_read_temp()
-  int32_t c_temp = bme280_read_temp();
-  uint32_t c_hum = bme280_read_hum();
+  int32_t c_temp;
+  uint32_t c_hum;
   LOG_DEBUG(
     CONTROL, "starting fermentation process with recipe %s ", recipes[recipe_counter].recipe_name);
 
