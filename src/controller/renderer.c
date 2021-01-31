@@ -310,24 +310,42 @@ void display_wipe(void)
 }
 
 // helper
-void update_recipe(char* recipe_name, int32_t temperature, uint32_t humidity)
+
+void update_recipe_name(char* recipe_name)
 {
   draw_box(0x00, 0, 0, 296, 40);
   print_text(recipe_name, 20, 10, 1);
-  draw_box(0xFF, 0, 40, 296, 80);
+};
+
+void update_temperature_and_humidity(int32_t temperature, int32_t humidity)
+{
+  draw_box(0xFF, 0, 40, 296, 24);
   char* temp_string[20];
   sprintf(temp_string, "Temp %dC", temperature / 100);
   print_text(temp_string, 20, 44, 0);
   if (humidity != -1) {
     char* hum_string[20];
-    sprintf(hum_string, "Hum %d%", humidity / 100);
+    sprintf(hum_string, "Hum %d%s", humidity / 1000, '%');
     print_text(hum_string, 128 + 20 + 20, 44, 0);
   }
+};
+
+void update_recipe(char* recipe_name, int32_t temperature, uint32_t humidity)
+{
+  update_recipe_name(recipe_name);
+  update_temperature_and_humidity(temperature, humidity);
+}
+
+void render_temperature_and_humidity(int32_t temperature, uint32_t humidity)
+{
+  update_temperature_and_humidity(temperature, humidity);
+  display_render_frame();
 }
 
 void render_recipe(char* recipe_name, int32_t temperature, uint32_t humidity)
 {
   update_recipe(recipe_name, temperature, humidity);
+  draw_box(0xFF, 0, 80, 296, 48);
   print_text("OK to configure", 20, 92, 0);
   display_render_frame();
 }
@@ -339,13 +357,18 @@ void render_recipe_and_submenus(char* recipe_name,
                                 uint8_t fermentation_started)
 {
   if (fermentation_started) {
-    update_recipe(recipe_name, temperature, humidity);
-    render_menubuttons(ch_ctx);
-    display_render_frame();
+    for (int i = 0; i < 2; i++) {
+      update_recipe(recipe_name, temperature, humidity);
+      render_menubuttons(ch_ctx);
+      render_menubutton_selection(ch_ctx);
+      display_render_frame();
+    }
   } else {
-    draw_box(0xFF, 0, 40, 296, 80);
-    render_ferm_start(recipe_name, ch_ctx);
-    display_render_frame();
+    for (int i = 0; i < 2; i++) {
+      draw_box(0xFF, 0, 40, 296, 80);
+      render_ferm_start(recipe_name, ch_ctx);
+      display_render_frame();
+    }
   }
 }
 
@@ -357,6 +380,7 @@ void render_ferm_start(char* recipe_name, int8_t change_ctx)
   print_text("OK to start", 20, 44, 0);
 
   render_menubuttons(change_ctx);
+  render_menubutton_selection(change_ctx);
   display_render_frame();
 }
 
@@ -389,6 +413,7 @@ void render_submenu_hum(char* recipe_name, uint32_t hum, int8_t submenu_change_c
 void render_submenu_buttons(int8_t submenu_change_ctx)
 {
   // TODO: Images!
+  draw_box(0xFF, 0, 100, 296, 28);
   switch (submenu_change_ctx) {
     case 0:
       print_text("+", 20, 100, 1);
@@ -411,55 +436,39 @@ void render_submenu_buttons(int8_t submenu_change_ctx)
   // display_render_frame();
 }
 
-// TODO: Code this in a more clever way once images are ready
-void render_menubuttons(int8_t change_ctx)
+void render_menubutton_selection(int8_t change_ctx)
 {
-  draw_box(0xFF, 0, 80, 296, 120);
-  // TODO: Images!
+  draw_box(0xFF, 0, 120, 296, 8);
+  int x_pos = 0;
   switch (change_ctx) {
     case 0:
-      show_image(start_icon, 38, 80, 40, 40, 1);
-      show_image(temp_icon, 98, 80, 40, 40, 0);
-      show_image(hum_icon, 158, 80, 40, 40, 0);
-      show_image(back_icon, 218, 80, 40, 40, 0);
-      // print_text("O", 20, 100, 1);
-      // print_text("T", 70, 100, 0);
-      // print_text("H", 120, 100, 0);
-      // print_text("E", 170, 100, 0);
+      x_pos = 54;
       break;
     case 1:
-      show_image(start_icon, 38, 80, 40, 40, 0);
-      show_image(temp_icon, 98, 80, 40, 40, 1);
-      show_image(hum_icon, 158, 80, 40, 40, 0);
-      show_image(back_icon, 218, 80, 40, 40, 0);
-      // print_text("O", 20, 100, 0);
-      // print_text("T", 70, 100, 1);
-      // print_text("H", 120, 100, 0);
-      // print_text("E", 170, 100, 0);
+      x_pos = 114;
       break;
     case 2:
-      show_image(start_icon, 38, 80, 40, 40, 0);
-      show_image(temp_icon, 98, 80, 40, 40, 0);
-      show_image(hum_icon, 158, 80, 40, 40, 1);
-      show_image(back_icon, 218, 80, 40, 40, 0);
-      // print_text("O", 20, 100, 0);
-      // print_text("T", 70, 100, 0);
-      // print_text("H", 120, 100, 1);
-      // print_text("E", 170, 100, 0);
+      x_pos = 174;
       break;
     case 3:
-      show_image(start_icon, 38, 80, 40, 40, 0);
-      show_image(temp_icon, 98, 80, 40, 40, 0);
-      show_image(hum_icon, 158, 80, 40, 40, 0);
-      show_image(back_icon, 218, 80, 40, 40, 1);
-      // print_text("O", 20, 100, 0);
-      // print_text("T", 70, 100, 0);
-      // print_text("H", 120, 100, 0);
-      // print_text("E", 170, 100, 1);
+      x_pos = 234;
       break;
     default:
       break;
   }
+  draw_box(0xC0, x_pos, 120, 8, 8);
+}
+
+// TODO: Code this in a more clever way once images are ready
+void render_menubuttons(int8_t change_ctx)
+{
+  draw_box(0xFF, 0, 80, 296, 48);
+  show_image(start_icon, 38, 80, 40, 40, 0);
+  show_image(temp_icon, 98, 80, 40, 40, 0);
+  show_image(hum_icon, 158, 80, 40, 40, 0);
+  show_image(back_icon, 218, 80, 40, 40, 0);
+
+  // TODO: Images!
 }
 
 void display_sleep(void) {}

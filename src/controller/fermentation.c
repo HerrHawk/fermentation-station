@@ -52,7 +52,7 @@ uint32_t check_hum(struct recipe* current_recipe)
   // Humidity does not affect some recipes ->
   // if the value -1 is set in the recipe humidity can be ignored
   if (current_recipe->desired_hum == -1) {
-    return;
+    return current_recipe->desired_hum;
   }
 
   int32_t control_output = pid_hum_calculate(current_recipe->desired_hum, kP, kI, kD);

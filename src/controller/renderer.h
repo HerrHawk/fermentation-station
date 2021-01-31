@@ -9,6 +9,7 @@ void display_wipe(void);
 void print_text(char* string, int x, int y, int white_on_black);
 void display_render_frame(void);
 void render_recipe(char* recipe_name, int32_t temperature, uint32_t humidity);
+void render_temperature_and_humidity(int32_t temperature, uint32_t humidity);
 void render_recipe_and_submenus(char* recipe_name,
                                 int32_t temperature,
                                 uint32_t humidity,

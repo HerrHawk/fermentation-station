@@ -40,6 +40,8 @@ int8_t change_context;
 // Global variable that determines which of the context menu buttons in the temp /
 // hum sub-menus is selected
 int8_t submenu_change_context;
+// Global variable that tells the program whether a fermentation is currently running or not
+uint8_t fermentation_started;
 
 // Declaring functions as states for the state machine
 state_fn recipe_selection;
@@ -164,143 +166,132 @@ void recipe_selection(struct state* state)
 // temp or hum in a sub-menu
 void fermentation_process(struct state* state)
 {
-  // Initialize the menu context counter and fermentation started variable to zero
-  change_context = 0;
-  uint8_t fermentation_started = 0;
-
   // Renders the fermentation menu overview
-  render_ferm_start(recipes[recipe_counter].recipe_name, change_context);
 
+  if (!fermentation_started) {
+    render_ferm_start(recipes[recipe_counter].recipe_name, change_context);
+  }
+  // TODO: bme280_read_temp()
+  int32_t c_temp = check_temp(&recipes[recipe_counter]);
+  uint32_t c_hum = check_hum(&recipes[recipe_counter]);
+  render_recipe_and_submenus(
+    recipes[recipe_counter].recipe_name, c_temp, c_hum, change_context, fermentation_started);
   LOG_DEBUG(
     CONTROL, "starting fermentation process with recipe %s ", recipes[recipe_counter].recipe_name);
 
+  int8_t last_context = change_context;
+
   for (;;) {
-    // Read the touch input on the touch sensor
+    // loop until a touch input has been detected
+    // if nothing happens, this will just idle here and continuosly update
+    // temperature and humidity
+    uint8_t touch_input = get_touch();
+    while (!touch_input) {
+      LOG_DEBUG(DEFAULT, "no touch input received");
+
+      // If the fermentation process is running, check the temp and hum and let the pid controller
+      // control the heating and humidity control process
+      if (fermentation_started && s1_triggered) {
+        // Check temperature and humidity
+        // if the humidity isn't part of the recipe, the returned -1 will disable
+        // printing for the humidity part of the interface
+        c_temp = check_temp(&recipes[recipe_counter]);
+        c_hum = check_hum(&recipes[recipe_counter]);
+        render_temperature_and_humidity(c_temp, c_hum);
+      }
+      // check whether touch input has been received by now
+      touch_input = get_touch();
+    }
+
+    // Interpret the touch input
     // 0b001 : Button 1
     // 0b010 : Button 2
     // 0b100 : Button 3
-    uint8_t touch_input = get_touch();
 
     // TODO: Delete once implementation is complete
     _delay_ms(10);
 
     switch (touch_input) {
       case 0b001: // (+) button
-        // Increment the change context
+        // Increment the change context and get back to requesting user input
         set_change_context(1);
-        // Re-render the display and its submenu-bar (the current menupoint will be highlighted)
-        render_recipe_and_submenus(recipes[recipe_counter].recipe_name,
-                                   recipes[recipe_counter].desired_temp,
-                                   recipes[recipe_counter].desired_hum,
-                                   change_context,
-                                   fermentation_started);
+        return;
         break;
       case 0b010: // (-) button
-        // Decrement the change context
+        // Decrement the change context and get back to requesting user input
         set_change_context(-1);
-        // Re-render the display and its submenu-bar (the current menupoint will be highlighted)
+        return;
+        break;
+      case 0b100: // (ok) button
+        break;
+      default:
+        break;
+    }
+
+    // char* test[3];
+    // sprintf(test, "%d", change_context);
+    // print_text(test, 0, 0, 0);
+    // display_render_frame();
+    // _delay_ms(1500);
+
+    // Change context :
+    // 0: idle                  --> switch fermentation on or off
+    // 1: change temperature    --> switch to submenu to change temp of the recipe
+    // 2: change humidity       --> switch to submenu to change hum of the recipe
+    // 3: exit                  --> exit and go back to recipe selection menu
+
+    switch (change_context) {
+      case 0: // (idle context btn) -> start/stop fermentation
+        // Fermentation start/stop
+        if (fermentation_started == 0) {
+          LOG_DEBUG(CONTROL, "fermentation has been started");
+          fermentation_started = 1;
+        } else {
+          LOG_DEBUG(CONTROL, "fermentation has been stopped");
+          fermentation_started = 0;
+          change_context = 0;
+          // Render the fermentation starting menu and its buttons
+          render_ferm_start(recipes[recipe_counter].recipe_name, change_context);
+        }
+        return;
+        break;
+      case 1: // change temp context
+        // Switch to sub-menu for temperature change
+        sub_menu_temperature_change();
+        // After changing the temp, re-render the display with the new required temperature
         render_recipe_and_submenus(recipes[recipe_counter].recipe_name,
                                    recipes[recipe_counter].desired_temp,
                                    recipes[recipe_counter].desired_hum,
                                    change_context,
                                    fermentation_started);
+        LOG_DEBUG(DEFAULT, "implement me: temp change");
+        return;
         break;
-      case 0b100: // (ok) button
+      case 2: // change hum context
+        LOG_DEBUG(DEFAULT, "implement me: hum change");
 
-        // Change context :
-        // 0: idle                  --> switch fermentation on or off
-        // 1: change temperature    --> switch to submenu to change temp of the recipe
-        // 2: change humidity       --> switch to submenu to change hum of the recipe
-        // 3: exit                  --> exit and go back to recipe selection menu
-
-        switch (change_context) {
-          case 0: // (idle context btn) -> start/stop fermentation
-            // Fermentation start/stop
-            if (fermentation_started == 0) {
-              LOG_DEBUG(CONTROL, "fermentation has been started");
-              fermentation_started = 1;
-            } else {
-              LOG_DEBUG(CONTROL, "fermentation has been stopped");
-              fermentation_started = 0;
-              change_context = 0;
-              // Render the fermentation starting menu and its buttons
-              render_ferm_start(recipes[recipe_counter].recipe_name, change_context);
-            }
-            break;
-          case 1: // change temp context
-            // Switch to sub-menu for temperature change
-            sub_menu_temperature_change();
-            // After changing the temp, re-render the display with the new required temperature
-            render_recipe_and_submenus(recipes[recipe_counter].recipe_name,
-                                       recipes[recipe_counter].desired_temp,
-                                       recipes[recipe_counter].desired_hum,
-                                       change_context,
-                                       fermentation_started);
-            LOG_DEBUG(DEFAULT, "implement me: temp change");
-            break;
-          case 2: // change hum context
-            LOG_DEBUG(DEFAULT, "implement me: hum change");
-
-            if (recipes[recipe_counter].desired_hum != -1) {
-              // Switch to sub-menu for humidity change
-              sub_menu_humidity_change();
-              // After changing the hum, re-render the display with the new required humidity
-              render_recipe_and_submenus(recipes[recipe_counter].recipe_name,
-                                         recipes[recipe_counter].desired_temp,
-                                         recipes[recipe_counter].desired_hum,
-                                         change_context,
-                                         fermentation_started);
-            }
-            break;
-          case 3: //(exit context btn)
-
-            // Stop actors
-            // TODO
-            // heating & nebuliz0r stop
-
-            // Return to recipe selection
-            state->next = recipe_selection;
-            return;
-          default: // This should never happen, because cases are predefined from 0-3
-            LOG_DEBUG(DEFAULT, "FATAL ERROR");
-            break;
+        if (recipes[recipe_counter].desired_hum != -1) {
+          // Switch to sub-menu for humidity change
+          sub_menu_humidity_change();
+          // After changing the hum, re-render the display with the new required humidity
+          render_recipe_and_submenus(recipes[recipe_counter].recipe_name,
+                                     recipes[recipe_counter].desired_temp,
+                                     recipes[recipe_counter].desired_hum,
+                                     change_context,
+                                     fermentation_started);
         }
+        break;
+      case 3: //(exit context btn)
 
-      default:
-        LOG_DEBUG(DEFAULT, "no touch input received");
+        // Stop actors
+        // TODO
+        // heating & nebuliz0r stop
 
-        // If the fermentation process is running, check the temp and hum and let the pid controller
-        // control the heating and humidity control process
-        if (fermentation_started && s1_triggered) {
-          // Check temperature
-          int32_t c_temp = check_temp(&recipes[recipe_counter]);
-
-          // Check humidity only when it is relevant as stated in the corresp. recipe
-          if (recipes[recipe_counter].desired_hum != -1) {
-            // Check humidity
-            uint32_t c_hum = check_hum(&recipes[recipe_counter]);
-            // Update the display to show the current temp + hum
-
-            render_recipe_and_submenus(recipes[recipe_counter].recipe_name,
-                                       c_temp,
-                                       c_hum,
-                                       change_context,
-                                       fermentation_started);
-          }
-          // Humidity is marked as irrelevant in the recipe, only show temp
-          else {
-            render_recipe_and_submenus(recipes[recipe_counter].recipe_name,
-                                       c_temp,
-                                       -1,
-                                       change_context,
-                                       fermentation_started);
-          }
-
-        } else {
-          // Giving the display time to render contents
-          _delay_ms(100);
-          render_ferm_start(recipes[recipe_counter].recipe_name, change_context);
-        }
+        // Return to recipe selection
+        state->next = recipe_selection;
+        return;
+      default: // This should never happen, because cases are predefined from 0-3
+        LOG_DEBUG(DEFAULT, "FATAL ERROR");
         break;
     }
   }
@@ -459,6 +450,12 @@ void error_function()
 {
   LOG_DEBUG(DEFAULT, "error occurred, writing to log");
   _delay_ms(2500);
+}
+
+void fermentation_init(void)
+{
+  change_context = 0;
+  fermentation_started = 0;
 }
 
 int main(void)
