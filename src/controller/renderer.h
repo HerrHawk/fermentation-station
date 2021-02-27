@@ -18,11 +18,11 @@ void render_recipe_and_submenus(char* recipe_name,
 void render_submenu_temp(char* recipe_name, int32_t temp, int8_t submenu_change_ctx);
 void render_submenu_hum(char* recipe_name, uint32_t hum, int8_t submenu_change_ctx);
 void render_menubuttons(int8_t change_ctx);
+void render_menubutton_selection(int8_t change_ctx);
 void render_submenu_buttons(int8_t submenu_change_ctx);
 void render_ferm_start(char* recipe_name, int8_t change_ctx);
 void show_image(const unsigned char* image_buffer, int x, int y, int width, int height, int invert);
 void draw_box(int color, int x, int y, int width, int height);
-// void demo();
 void display_set_entire_frame_memory(const unsigned char* image_buffer);
 void display_set_partial_frame_memory(const unsigned char* image_buffer,
                                       int x,
