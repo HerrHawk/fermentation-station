@@ -4,11 +4,11 @@
 
 The motivation behind *Fermentation Station* was to have an easy way of maintaining a controlled environment (meaning temperature and humidity). Fermentation is a fickle process and maintaining the desired temperature and humidity in a stable manner is crucial for providing a safe and delicious product. Thus the premise is simple: have a contained system which handles everything you need to worry about. Set a target temperature and humidity value, put your produce in the box and come back in a couple of days to your ferment.
 
-![images/fermentation_station_1.jpg](images/fermentation_station_1.jpg)
+<img src="images/fermentation_station_1.jpg" width="250">
 
-![images/fermentation_station_2.jpg](images/fermentation_station_2.jpg)
+<img src="images/fermentation_station_2.jpg" width="250">
 
-![images/fermentation_station_3.jpg](images/fermentation_station_3.jpg)
+<img src="images/fermentation_station_3.jpg" width="250">
 
 # How to use it
 
@@ -25,9 +25,20 @@ The user has three capacitive buttons to press: a `-`, `+` and `ok` button.
 
 ## Hardware
 
-An overview of all the components we used can be found in the link below.
+|Product                         |Notes                                                                                                                                         |Order                                                                                                                                                                                                               |Datasheet                                                                                                      |
+|--------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
+|Adafruit Trinket Pro 3V         |Main controller. Runs on 3.3V & comes with an onboard USB bootloader.                                                                         |[Link](https://www.adafruit.com/product/2010)                                                                                                                                                                               |[Link](https://cdn-shop.adafruit.com/datasheets/ATMEGA328P.pdf)                                                        |
+|Arduino Uno                     |Used as a FTDI adapter for flashing and debugging the TrinketPro.                                                                             |[Link](https://store.arduino.cc/arduino-uno-rev3)                                                                                                                                                                           |[Link](http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf)|
+|Bosch BME280                    |Humidity/Temperature/Pressure Sensor (Pressure functionality is not used in this project).                                                    |[Link](https://www.reichelt.de/de/de/entwicklerboards-temperatur-feuchtigkeits-und-drucksensor--debo-bme280-p253982.html?search=bme280&&r=1)                                                                                |[Link](https://www.mouser.de/datasheet/2/783/BST_BME280_DS002-1509607.pdf)                                             |
+|DEBO TOUCH SENS2 MPR121         |Capacitive touch controller with up to 12 Input channels (Three are used in this project).                                                    |[Link](https://www.reichelt.de/entwicklerboards-platine-fuer-kapazitive-beruehrungssensoren-mp-debo-touch-sens2-p291455.html?search=DEBO+Touch)                                                                             |[Link](https://cdn-reichelt.de/documents/datenblatt/A300/DEBO_TOUCH_SENS2_DS_EN.pdf)                                   |
+|Waveshare 2.9inch e-Paper Module|E-Ink display for rendering information about the fermentation process.                                                                       |[Link](https://www.reichelt.de/entwicklerboards-display-epaper-2-9-schwarz-weiss-debo-epa-2-9-p224224.html?&trstct=pos_12&nbc=1)                                                                                            |[Link](https://www.waveshare.com/w/upload/9/98/2.9inch-e-paper-module-user-manual-en.pdf)                              |
+|Ultrasonic Nebulizer            |Compact humidifier, USB powered piezoelectric transducer that generates fine mist.                                                            |[Link](https://www.amazon.de/PEARL-Nebler-USB-Mini-Luftbefeuchter-Aroma-Diffuser/dp/B08591SF5G/ref=sr_1_3?__mk_de_DE=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=pearl+humidifier&qid=1614445635&sr=8-3) (Double Pack)|-                                                                                                              |
+|MOSFET Module DC 5V-36V 15A     |Used to regulate the output of the heating element & humidifier.                                                                              |[Link](https://www.amazon.de/gp/product/B07VRCXGFY/ref=ppx_yo_dt_b_asin_title_o03_s00?ie=UTF8&psc=1) (5 pcs)                                                                                                                |-                                                                                                              |
+|DC/DC Step Down Buck Converter  |Converts the 24V from the Power Supply to 5V to drive the Arduino. A screwdriver and multimeter is required to set the correct output voltage.|[Link](https://www.amazon.de/gp/product/B08DNVXP87/ref=ppx_yo_dt_b_asin_title_o05_s00?ie=UTF8&psc=1) (6 pcs)                                                                                                                |-                                                                                                              |
+|Thermo Box 42L                  |We used a 42 Liter Thermo Box for our prototype. In combination with the 30W Heatingcable we don't recommend going with a bigger box.         |[Link](https://www.amazon.de/gp/product/B07B924LBB/ref=ppx_yo_dt_b_asin_title_o09_s00?ie=UTF8&psc=1)                                                                                                                        |-                                                                                                              |
+|Heating Cable 30W               |24V 30W Heating cable with IPx7 protection. Ideal for our use-case.                                                                           |[Link](https://www.amazon.de/gp/product/B00BAQW0OM/ref=ppx_yo_dt_b_asin_title_o01_s00?ie=UTF8&psc=1)                                                                                                                        |-                                                                                                              |
+|Power Supply 24 V 6A AC/DC      |                                                                                                                                              |[Link](https://www.amazon.de/gp/product/B0721MKCZJ/ref=ppx_yo_dt_b_asin_title_o03_s00?ie=UTF8&psc=1)                                                                                                                        |-                                                                                                              |
 
-[Components](https://www.notion.so/bae315ecd97946318cbf2386c9f833a6)
 
 Overall, the listed items set us back with around 140€. Costs could be reduced if we ordered from Chinese manufacturers via AliExpress, but this would result in much longer delivery times.
 
@@ -44,6 +55,7 @@ The schematic for this project is not too complicated. Since we choose manly har
 **Breadboard:**
 
 ![images/Fermentation_Box_v2_Steckplatine.png](images/Fermentation_Box_v2_Steckplatine.png)
+<img src="images/fermentation_station_1.jpg" width="250">
 
 **Circuit diagram:**
 
@@ -70,9 +82,11 @@ After development, we tried to go for a more permanent setup. We replaced the br
 
 To prevent damage to the hardware components and wiring we 3D-printed a simple case for our prototype. We added a cutout in the top of the box for the display. The electrodes were placed inside the box. The electrodes can reliably detect touch input through the plastic - No buttons needed!
 
-![images/fermentation_station_4.jpg](images/fermentation_station_4.jpg)
+<!-- ![images/fermentation_station_4.jpg](images/fermentation_station_4.jpg) -->
+<img src="images/fermentation_station_4.jpg" width="250">
 
-![images/fermentation_station_5.jpg](images/fermentation_station_5.jpg)
+<!-- ![images/fermentation_station_5.jpg](images/fermentation_station_5.jpg) -->
+<img src="images/fermentation_station_5.jpg" width="250">
 
 ## Software
 
@@ -80,7 +94,7 @@ The project is written in embedded C, no external libraries are used. Additional
 
 ### Building and Flashing
 
-To be able to build and flash the firmware onto the microcontroller, you need to have `[avr-gcc](https://www.google.com/search?client=safari&rls=en&q=avrgcc&ie=UTF-8&oe=UTF-8)` and `avrdude` installed. On Windows, `[WinAVR](http://winavr.sourceforge.net)` can be used as an alternative to `avr-gcc`. 
+To be able to build and flash the firmware onto the microcontroller, you need to have [avr-gcc](https://www.google.com/search?client=safari&rls=en&q=avrgcc&ie=UTF-8&oe=UTF-8) and avrdude installed. On Windows, [WinAVR](http://winavr.sourceforge.net) can be used as an alternative to avr-gcc. 
 
 The build process is handled via a Makefile. In order to get started with building, simply execute the following commands in the root folder of the repository.
 
