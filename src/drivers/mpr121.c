@@ -10,10 +10,10 @@
     _delay_ms(1000);
     
     //Softreset
-    I2CStartAddress(MPR121_ADDRESS<<1);
-    I2CWrite(MPR121_REG_SOFTRESET);
-    I2CWrite(0x63);
-    I2CStop();
+    i2c_start_address(MPR121_ADDRESS<<1);
+    i2c_write(MPR121_REG_SOFTRESET);
+    i2c_write(0x63);
+    i2c_stop();
     _delay_ms(20);
 
    //Check for default config 
@@ -26,13 +26,13 @@
    }
     
    //Set MPR to Off_
-    I2CStartAddress(MPR121_ADDRESS<<1);
-    I2CWrite(MPR121_REG_ECR);
-    I2CWrite(0x00);
-    I2CStop();
+    i2c_start_address(MPR121_ADDRESS<<1);
+    i2c_write(MPR121_REG_ECR);
+    i2c_write(0x00);
+    i2c_stop();
     _delay_ms(20);
 
-   //Recommended Settings
+   //Recommended calibration settings (https://www.nxp.com/docs/en/application-note/AN4600.pdf)
    write_data(MPR121_MHDR, 0X01);
    write_data(MPR121_NHDR, 0X01);
    write_data(MPR121_NCLR, 0X0E);
@@ -54,41 +54,42 @@
 
 
    set_e_thresholds();
-   //Autoconfig
+   //Autoconfig, calibrates sensor on startup automatically 
    write_data(MPR121_REG_AUTOCONFIG_0,0x0B);
    write_data(MPR121_REG_USL,200);
    write_data(MPR121_REG_LSL,130);
    write_data(MPR121_REG_TL,180);
 
+   //set run mode, "starts" the sensor
    write_data(MPR121_REG_ECR,0x8C);
-   I2CStop();
+   i2c_stop();
 
     
-    LOG_DEBUG(I2C, "Info: MPR121 Setup Complete.");
+   LOG_DEBUG(I2C, "Info: MPR121 Setup Complete.");
  }
 
 
 void write_data(uint8_t addr, uint8_t data)
 {
-   I2CStartAddress(MPR121_ADDRESS<<1);
-   I2CWrite(addr);
-   I2CWrite(data);
-   I2CStop();
+   i2c_start_address(MPR121_ADDRESS<<1);
+   i2c_write(addr);
+   i2c_write(data);
+   i2c_stop();
 }
 
  uint8_t mpr121_read_byte(uint8_t addr)
  {
    uint8_t ret_val;
-   I2CStartAddress(MPR121_ADDRESS<<1);
-   I2CWrite(addr);   
-   I2CReStartAddress(MPR121_ADDRESS<<1|0x01);
-   ret_val = I2CReadACK();
-   I2CStop();
+   i2c_start_address(MPR121_ADDRESS<<1);
+   i2c_write(addr);   
+   i2c_restart_address(MPR121_ADDRESS<<1|0x01);
+   ret_val = i2c_read_ack();
+   i2c_stop();
    return ret_val;
  }
 
  void set_e_thresholds(){
-
+   //Recommended calibration settings (https://www.nxp.com/docs/en/application-note/AN4600.pdf)
    write_data(E0TTH,TThre);
    write_data(E0RTH,RThre);
 
@@ -124,10 +125,10 @@ void write_data(uint8_t addr, uint8_t data)
 
    write_data(E11TTH,TThre);
    write_data(E11RTH,RThre);
-
  }
 
-
+//returns the touchinput from the first three pins 0-2. Rest is ignored
+//returns "touched" only on change between previous and current reading.
 uint8_t get_touch(){
    static uint8_t prevtouched=0;
    uint8_t currenttouched = mpr121_read_byte(0x00);
@@ -140,8 +141,6 @@ uint8_t get_touch(){
       }
    }
    
-
-
    prevtouched = currenttouched;
    return res;
 

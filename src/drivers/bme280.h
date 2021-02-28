@@ -1,14 +1,14 @@
 #pragma once
-#define BME280_ADDRESS (0x76)
+#define BME280_ADDRESS (0x76) //i2c device address 
 #include <avr/io.h>
 
 enum {
     BME280_REG_ID = 0xD0,
     BME280_REG_RESET = 0xE0,
-    BME280_REG_CTRL_HUM = 0xF2, //(BME280 p.28)
+    BME280_REG_CTRL_HUM = 0xF2,
     BME280_REG_CTRL_MEAS = 0xF4,
-    BME280_REG_CONFIG = 0xF5,//(p.30)
-    BME280_REG_DATA_PRESS = 0XF7,//(p.31)
+    BME280_REG_CONFIG = 0xF5,
+    BME280_REG_DATA_PRESS = 0XF7,
     BME280_REG_DATA_TEMP = 0xFA,
     BME280_REG_DATA_HUM = 0xFD, 
     //Trimming parameter register addresses

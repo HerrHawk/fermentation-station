@@ -1,6 +1,6 @@
-#define MPR121_ADDRESS (0x5A)
-#define TThre (0x03)
-#define RThre (0x05)
+#define MPR121_ADDRESS (0x5A) //i2c device address 
+#define TThre (0x03) //touch detection threshold 
+#define RThre (0x05) //release detection threshold
 
 #include <avr/io.h>
 

@@ -27,6 +27,7 @@ void setup_timer_s1()
 ISR(TIMER1_COMPA_vect)
 {
     //action for timer
+    //"event" will be consumed after sensor data is read out
     s1_triggered = 1;
 
 }

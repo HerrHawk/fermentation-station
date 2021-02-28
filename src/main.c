@@ -461,7 +461,7 @@ int main(void)
 {
   // run setup/initialization functions
   uart_init();
-  I2CInit();
+  i2c_init();
   _delay_ms(10);
   mpr121_init();
   bme280_init();

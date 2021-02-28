@@ -20,32 +20,32 @@ void bme280_init()
 
     LOG_DEBUG(TEMPERATURE, "Info: BME280 connected.");
 
-    I2CStartAddress(BME280_ADDRESS<<1);
+    i2c_start_address(BME280_ADDRESS<<1);
     //reset with complete power on reset procedure (BME280 p.27)
-    I2CWrite(BME280_REG_RESET);
-    I2CWrite(0xB6);
-    I2CStop();
+    i2c_write(BME280_REG_RESET);
+    i2c_write(0xB6);
+    i2c_stop();
     //wait for finish
     //startup time is 2 ms .. just to be safe
     _delay_ms(20);
 
     //write config 
-    I2CStartAddress(BME280_ADDRESS<<1);
+    i2c_start_address(BME280_ADDRESS<<1);
     //config for humidity
-    I2CWrite(BME280_REG_CTRL_HUM);
+    i2c_write(BME280_REG_CTRL_HUM);
     //set humidity oversempling to 8
-    I2CWrite(0x04);
+    i2c_write(0x04);
     //config the rate, filter and interface
-    I2CWrite(BME280_REG_CONFIG);
+    i2c_write(BME280_REG_CONFIG);
     //set standby to 250 ms(0x03), filter to 8(0x03), spi off (0x00)
-    I2CWrite((0x03<<5)|(0x03<<2)|(0x00));
+    i2c_write((0x03<<5)|(0x03<<2)|(0x00));
 
     //config pressure, temperature and sensor mode
-    I2CWrite(BME280_REG_CTRL_MEAS);
+    i2c_write(BME280_REG_CTRL_MEAS);
     //temp oversampling to 8, pressure oversampling to 8, sensor mode to normal
-    I2CWrite((0x04<<5)|(0x04<<2)|(0x03));
+    i2c_write((0x04<<5)|(0x04<<2)|(0x03));
 
-    I2CStop();
+    i2c_stop();
 
     bme280_read_trimming_register();
 
@@ -59,13 +59,13 @@ void bme280_init()
 uint8_t bme280_read_byte(uint8_t addr)
 {
     uint8_t ret_val;
-    I2CStartAddress(BME280_ADDRESS<<1);
-    I2CWrite(addr);
-    I2CStop();
+    i2c_start_address(BME280_ADDRESS<<1);
+    i2c_write(addr);
+    i2c_stop();
 
-    I2CStartAddress(BME280_ADDRESS<<1|0x01);
-    ret_val = I2CReadNoACK();
-    I2CStop();
+    i2c_start_address(BME280_ADDRESS<<1|0x01);
+    ret_val = i2c_read_no_ack();
+    i2c_stop();
 
     return ret_val;
 }
@@ -75,18 +75,18 @@ uint16_t bme280_read_2bytes(uint8_t addr)
     uint16_t ret_val;
     
     //"aktivate" read-register
-    I2CStartAddress(BME280_ADDRESS<<1);
-    I2CWrite(addr);
-    I2CStop();
+    i2c_start_address(BME280_ADDRESS<<1);
+    i2c_write(addr);
+    i2c_stop();
 
     //Start read with address & read flag
-    I2CStartAddress(BME280_ADDRESS<<1|0x01);
+    i2c_start_address(BME280_ADDRESS<<1|0x01);
     //Read 1st Byte, send Ack & shift
-    ret_val = I2CReadACK();
+    ret_val = i2c_read_ack();
     ret_val <<= 8;
     //Read 2nd Byte, set in return value
-    ret_val |= I2CReadNoACK();
-    I2CStop();
+    ret_val |= i2c_read_no_ack();
+    i2c_stop();
     
     return ret_val;
 }
@@ -104,19 +104,19 @@ uint32_t bme280_read_3bytes(uint8_t addr)
     uint32_t ret_val;
 
     //"aktivate" read-register
-    I2CStartAddress(BME280_ADDRESS<<1);
-    I2CWrite(addr);
-    I2CStop();
+    i2c_start_address(BME280_ADDRESS<<1);
+    i2c_write(addr);
+    i2c_stop();
 
     //Start read with address & read flag
-    I2CStartAddress(BME280_ADDRESS<<1|0x01);
+    i2c_start_address(BME280_ADDRESS<<1|0x01);
     //Read 1st Byte, send Ack & shift
-    ret_val = I2CReadACK();
+    ret_val = i2c_read_ack();
     ret_val <<= 8;
-    ret_val |= I2CReadACK();
+    ret_val |= i2c_read_ack();
     ret_val <<=8;
-    ret_val |=  I2CReadNoACK();
-    I2CStop();
+    ret_val |=  i2c_read_no_ack();
+    i2c_stop();
 
     return ret_val;
 }
@@ -165,7 +165,7 @@ int32_t bme280_read_temp()
 uint32_t bme280_read_hum()
 {
     int32_t humraw = (int32_t)bme280_read_2bytes(BME280_REG_DATA_HUM);
-
+    //compensation formular for humidity. From BME280 datasheet (p.25)
     uint32_t var1;
 
     var1 = (t_fine- ((int32_t)76800));
