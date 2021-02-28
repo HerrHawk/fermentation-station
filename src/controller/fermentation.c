@@ -20,6 +20,7 @@ struct pid_data_holder
 
 int32_t check_temp(struct recipe* current_recipe)
 {
+  //coefficients were determined through experimentation
   double kP = 3;
   double kI = 0.1;
   double kD = 1.0;
@@ -79,6 +80,8 @@ int32_t pid_temp_calculate(int32_t setpoint, double kP, double kI, double kD)
     pid_data.prev_temp_error = error;
   }
 
+  //Integral takes only effect close 
+  //to the target value to prevent windup
   if (-20 < error && error < 20) {
     pid_data.integral_temp += error * time_change;
   }

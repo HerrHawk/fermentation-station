@@ -5,7 +5,7 @@
 #include <avr/io.h>
 #include <util/twi.h>
 
-void I2CInit(void)
+void i2c_init(void)
 {
     //set SCL to 400kHZ
     //TWSR – TWI Status Register (p.200)
@@ -19,28 +19,25 @@ void I2CInit(void)
     TWCR = bitValue(TWEN);
 }
 
-void  I2CStart(void)
+void  i2c_start(void)
 {
     //send start condition (p.188)
     TWCR = (1<<TWINT)|(1<<TWSTA)|(1<<TWEN);
     
-    //on p.188 TWSTO is stated as 0 ?
-    //clearBit(TWCR,TWSTO);
     while(!(TWCR & (1<<TWINT)));
 }
 
-void I2CStartAddress(uint8_t addr)
+void i2c_start_address(uint8_t addr)
 {
-    //I2CStart();
     uint8_t twst;
     //send start condition (p.188)
     TWCR = 0;
     TWCR = (1<<TWINT)|(1<<TWSTA)|(1<<TWEN);
     while(!(TWCR & (1<<TWINT)));
 
-    twst = I2CGetStatus();
+    twst = i2c_get_status();
     LOG_DEBUG(I2C_DEEP,"Start Status: %x", twst);
-  //A START condition has been transmitted
+    //a start condition has been transmitted
     if ((twst!=TW_START) && (twst!=TW_REP_START))
     {
         LOG_DEBUG(I2C,"Start failed with Code: %x", twst);
@@ -51,7 +48,7 @@ void I2CStartAddress(uint8_t addr)
     TWCR = (1<<TWINT)|(1<<TWEN);
     while (!(TWCR & (1<<TWINT)));
 
-    twst = I2CGetStatus();
+    twst = i2c_get_status();
     LOG_DEBUG(I2C_DEEP,"Start Addr Status: %x", twst);
     if ((twst != TW_MT_SLA_ACK) && (twst!= TW_MR_SLA_ACK))
     {
@@ -62,18 +59,16 @@ void I2CStartAddress(uint8_t addr)
     return;
 }
 
-void I2CReStartAddress(uint8_t addr)
+void i2c_restart_address(uint8_t addr)
 {
-        //I2CStart();
     uint8_t twst;
     //send start condition (p.188)
-    //TWCR = 0;
     TWCR = (1<<TWINT)|(1<<TWSTA)|(1<<TWEN);
     while(!(TWCR & (1<<TWINT)));
 
-    twst = I2CGetStatus();
+    twst = i2c_get_status();
     LOG_DEBUG(I2C_DEEP,"Start Status: %x", twst);
-  //A START condition has been transmitted
+    //A start condition has been transmitted
     if ((twst!=TW_START) && (twst!=TW_REP_START))
     {
         LOG_DEBUG(I2C,"Start failed with Code: %x", twst);
@@ -84,7 +79,7 @@ void I2CReStartAddress(uint8_t addr)
     TWCR = (1<<TWINT)|(1<<TWEN);
     while (!(TWCR & (1<<TWINT)));
 
-    twst = I2CGetStatus();
+    twst = i2c_get_status();
     LOG_DEBUG(I2C_DEEP,"Start Addr Status: %x", twst);
     if ((twst != TW_MT_SLA_ACK) && (twst!= TW_MR_SLA_ACK))
     {
@@ -96,12 +91,12 @@ void I2CReStartAddress(uint8_t addr)
 }
 
 //Send Stop Condition
-void I2CStop(void)
+void i2c_stop(void)
 {
     TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);
 }
 
-void I2CWrite(uint8_t u8data)
+void i2c_write(uint8_t u8data)
 {
     uint8_t twst;
     TWDR = u8data;
@@ -109,7 +104,7 @@ void I2CWrite(uint8_t u8data)
 
     while (!(TWCR & (1<<TWINT)));
 
-    twst = I2CGetStatus();
+    twst = i2c_get_status();
 
     LOG_DEBUG(I2C_DEEP,"Write Status: %x", twst);
     if(twst != TW_MT_DATA_ACK){
@@ -121,37 +116,39 @@ void I2CWrite(uint8_t u8data)
     return;
 }
 
-void I2CWriteData(uint8_t addr, uint8_t data)
+void i2c_write_data(uint8_t addr, uint8_t data)
 {
-    I2CWrite(addr);
-    I2CWrite(data);
+    i2c_write(addr);
+    i2c_write(data);
 }
 
-uint8_t I2CReadACK(void)
+
+uint8_t i2c_read_ack(void)
 {
     uint8_t twst;
     TWCR = (1<<TWINT)|(1<<TWEN)|(1<<TWEA);
     while (!(TWCR & (1<<TWINT)));
 
-    twst = I2CGetStatus();
+    twst = i2c_get_status();
     LOG_DEBUG(I2C_DEEP,"ReadACK Status: %x", twst);
 
     return TWDR;
 }
 
-uint8_t I2CReadNoACK(void)
+uint8_t i2c_read_no_ack(void)
 {
     uint8_t twst;
     TWCR = (1<<TWINT)|(1<<TWEN);
     while (!(TWCR & (1<<TWINT)));
 
-    twst = I2CGetStatus();
+    twst = i2c_get_status();
     LOG_DEBUG(I2C_DEEP,"ReadACK Status: %x", twst);
 
     return TWDR;
 }
 
-uint8_t I2CGetStatus(void)
+//read the current status from status register
+uint8_t i2c_get_status(void)
 {
     uint8_t status;
     //mask status,
