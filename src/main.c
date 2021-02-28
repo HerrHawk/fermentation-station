@@ -24,7 +24,6 @@ struct state
 // Lactofermentierung, 25° (28° optimal), no humidity (-1 means perma off)
 // Symbiotic Culture of Bacteria and Yeast, 25° (28° optimal), no hum (-1 means perma off)
 // Koji, 30°, 72% humidity
-// TOOD, make me a useful recipe
 */
 struct recipe recipes[] = { { "Lactobacillales", 2500, -1, 0 },
                             { "SCOBY", 2500, -1, 0 },
@@ -52,6 +51,7 @@ state_fn fermentation_process;
 void set_recipe_counter(int8_t modifier)
 {
   recipe_counter = recipe_counter + modifier;
+  // Get the size of the array
   int8_t size = (sizeof(recipes) / sizeof(recipes[0]));
 
   if (recipe_counter == -1) {
@@ -104,13 +104,12 @@ void set_submenu_change_context(int8_t modifier)
   LOG_DEBUG(DEFAULT, "submenu change_context is now %d", submenu_change_context);
 }
 
-// The main menu waits for user touch input then starts fermentation with a custom or predefined
-// recipe
+// The main menu waits for user touch input then starts fermentation with a predefined recipe
 void recipe_selection(struct state* state)
 {
   LOG_DEBUG(CONTROL, "entering recipe selection menu");
 
-  // initialize the main menu with the first recipe (recipes[0])
+  // initialize the main menu with the first recipe (recipes[0]) -> reset counter
   recipe_counter = 0;
   // Rendering the first recipe onto the display
   render_recipe(recipes[recipe_counter].recipe_name,
@@ -120,13 +119,12 @@ void recipe_selection(struct state* state)
   for (;;) {
 
     LOG_DEBUG(CONTROL, "wait for user touch input");
-    // Read the touch input on the touch sensor
+    // Read the touch input on the register in which the touch sensor writes
     // 0b001 : Button 1
     // 0b010 : Button 2
     // 0b100 : Button 3
     uint8_t touch_input = get_touch();
 
-    // TODO: Remove delay once implementation is complete
     _delay_ms(10);
 
     switch (touch_input) {
@@ -162,8 +160,8 @@ void recipe_selection(struct state* state)
   }
 }
 
-// The fermentation process regulates temp and hum and also waits for user input to cancel or alter
-// temp or hum in a sub-menu
+// The fermentation process regulates temp and hum and also waits for user input to start/cancel the
+// ferment or alter temp or hum in a sub-menu
 void fermentation_process(struct state* state)
 {
   // Renders the fermentation menu overview
@@ -171,14 +169,18 @@ void fermentation_process(struct state* state)
   if (!fermentation_started) {
     render_ferm_start(recipes[recipe_counter].recipe_name, change_context);
   }
+  // Get current temp and hum
   int32_t c_temp = bme280_read_temp();
   uint32_t c_hum = recipes[recipe_counter].desired_hum != -1 ? bme280_read_hum() : -1;
-  // TOOD: move this out
+
+  // Render recipe overview including the submenu buttons
+  // Display current temp and hum
   render_recipe_and_submenus(
     recipes[recipe_counter].recipe_name, c_temp, c_hum, change_context, fermentation_started);
   LOG_DEBUG(
     CONTROL, "starting fermentation process with recipe %s ", recipes[recipe_counter].recipe_name);
 
+  // Remember the change context (which button is highlighted/selected)
   int8_t last_context = change_context;
 
   for (;;) {
@@ -203,14 +205,12 @@ void fermentation_process(struct state* state)
       touch_input = get_touch();
     }
 
+    _delay_ms(10);
+
     // Interpret the touch input
     // 0b001 : Button 1
     // 0b010 : Button 2
     // 0b100 : Button 3
-
-    // TODO: Delete once implementation is complete
-    _delay_ms(10);
-
     switch (touch_input) {
       case 0b001: // (+) button
         // Increment the change context and get back to requesting user input
@@ -288,10 +288,6 @@ void fermentation_process(struct state* state)
         break;
       case 3: //(exit context btn)
 
-        // Stop actors
-        // TODO
-        // heating & nebuliz0r stop
-
         // Return to recipe selection
         state->next = recipe_selection;
         return;
@@ -320,7 +316,6 @@ void sub_menu_temperature_change()
     // 0b100 : Button 3
     uint8_t touch_input = get_touch();
 
-    // TODO: Remove once implementation is complete
     _delay_ms(10);
 
     switch (touch_input) {
@@ -394,7 +389,6 @@ void sub_menu_humidity_change()
     // 0b100 : Button 3
     uint8_t touch_input = get_touch();
 
-    // TODO: Remove once implementation is complete
     _delay_ms(10);
 
     switch (touch_input) {
