@@ -55,7 +55,6 @@ The schematic for this project is not too complicated. Since we choose manly har
 **Breadboard:**
 
 ![images/Fermentation_Box_v2_Steckplatine.png](images/Fermentation_Box_v2_Steckplatine.png)
-<img src="images/fermentation_station_1.jpg" width="250">
 
 **Circuit diagram:**
 
