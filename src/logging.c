@@ -1,7 +1,6 @@
-#define F_CPU 12000000UL
-#define __AVR_ATmega328P__
 #define BAUD 9600
 #include "logging.h"
+#include "globals.h"
 #include <avr/io.h>
 #include <stdio.h>
 #include <util/setbaud.h>
@@ -41,13 +40,13 @@ char uart_getchar(FILE* stream)
 FILE uart_output = FDEV_SETUP_STREAM(uart_putchar, NULL, _FDEV_SETUP_WRITE);
 FILE uart_input = FDEV_SETUP_STREAM(NULL, uart_getchar, _FDEV_SETUP_READ);
 
-const char* const sectorNames[] = {
+const char* const sector_names[] = {
   [DEFAULT] = "DEFAULT", [TEMPERATURE] = "TEMPERATURE", [HUMIDITY] = "HUMIDITY",
   [DISPLAY] = "DISPLAY", [CONTROL] = "CONTROL",         [I2C] = "I2C",
   [SPI] = "SPI",
 };
 
-const int const sectorLoggingEnabled[] = {
+const int const sector_logging_enabled[] = {
   [DEFAULT] = 1, [TEMPERATURE] = 1, [HUMIDITY] = 1, [DISPLAY] = 1,
-  [CONTROL] = 1, [I2C] = 1,         [SPI] = 1,
+  [CONTROL] = 1, [I2C] = 1, [SPI] = 1, [I2C_DEEP] = 0
 };
